@@ -4,6 +4,7 @@ class Fullscreen_Window:
 
     def __init__(self):
         self.tk = Tk()
+        self.tk.minsize(200, 200)
         # self.tk.attributes('-zoomed', True)  # This just maximizes it so we can see the window. It's nothing to do with fullscreen.
         self.frame = Frame(self.tk)
         self.frame.pack()
