@@ -1,8 +1,7 @@
-from cmath import exp
-from inspect import FrameInfo
-from os import access
 from tkinter import *
+from turtle import width
 from tinydb import *
+import platform
 
 
 # GUI stuff
@@ -13,50 +12,113 @@ win.title('Επεξεργασία ερωτήσεων - ΠΘΝΓΕ')
 
 win.geometry('800x600')
 
-# TODO
-# Scrollbars
-scrollbarVertical = Scrollbar(win)
-scrollbarVertical.pack(side=RIGHT, fill=Y)
-scrollbarHorizontal = Scrollbar(win, orient=HORIZONTAL)
-scrollbarHorizontal.pack(side=BOTTOM, fill=X)
+win.minsize(width=200, height=200)
+
+defColor = '#ddd'
 
 # Left frame for the questions
-frameLeft = Frame(win, bg='#ccc', width=300, borderwidth=1, padx=16)
+frameLeft = Frame(win, bg=defColor, width=300, borderwidth=1, padx=16)
 frameLeft.pack(side=LEFT, fill=Y)
 
 # Right frame for the options
-frameRight = Frame(win, bg='#aaa', width=500, border=1, padx=5, pady=5)
+frameRight = Frame(win, bg=defColor, width=500, borderwidth=1, padx=16)
 frameRight.pack(side=LEFT, fill=BOTH, expand=1)
 
-# Title for frameLeft
-frameLeftLabel = Label(frameLeft, text='Ερωτήσεις στη ΒΔ',
-                       justify=LEFT, anchor=W, bg='#ddd', height=1)
-frameLeftLabel.pack(side=TOP, fill=X, padx=(0, 82))
+# Container for the options
+labelFrameRight = LabelFrame(
+    frameRight, bg=defColor, padx=10, pady=10, text='Επιλογές')
+labelFrameRight.pack_propagate(False)
+labelFrameRight.pack(side=TOP, fill=BOTH, expand=1, pady=(0, 16))
 
 # Container for the question list and the scrollbar
-frameLeftInner = Frame(frameLeft, bg='#eee', width=250)
-frameLeftInner.pack(side=TOP, fill=BOTH, expand=1, pady=(0, 16))
+labelFrameLeft = LabelFrame(
+    frameLeft, bg=defColor, width=250, text='Ερωτήσεις', padx=10, pady=10)
+labelFrameLeft.pack_propagate(False)
+labelFrameLeft.pack(side=TOP, fill=Y, expand=1, pady=(0, 16))
 
-# Scrollbar for the question list
-scrollbarLeftInnerVertical = Scrollbar(frameLeftInner)
-scrollbarLeftInnerVertical.pack(side=RIGHT, fill=Y)
 
-# Container for the question list
-frameInnerScrollable = Canvas(frameLeftInner, bg='#990', borderwidth=5, insertborderwidth=5)
-frameInnerScrollable.pack(side=LEFT, fill=BOTH, expand=1)
+class ScrollFrame(Frame):
+    def __init__(self, parent):
+        # create a frame
+        super.__init__(parent)
 
-# Container for a single question
-frameQuestionSelect = Frame(frameInnerScrollable, bg='#855')
-frameQuestionSelect.pack(side=TOP, anchor=N, fill=X, expand=1)
+        # place a canvas on self
+        self.canvas = Canvas(self, borderwidth=0, background=defColor)
+        # place a frame in the canvas
+        # all child widgets will go inside this frame
+        self.viewport = Frame(self.canvas, background=defColor)
+        # place scrollbar on self
+        self.verticalSrollbar = Scrollbar(self, orient=VERTICAL)
+        # attach scrollbar action to the scrolling of the canvas
+        self.canvas.configure(yscrollcommand=self.verticalSrollbar.set)
 
-# Difficulty Label
-difficultyLevelLabel = Label(frameQuestionSelect, bg='#585', text='E', padx=16)
-difficultyLevelLabel.pack(side=LEFT)
+        # pack scrollbar to the right side of self
+        self.verticalSrollbar.pack(side=RIGHT, fill=Y)
+        # pack canvas to the left side of self
+        self.canvas.pack(side=LEFT, fill=BOTH, expand=TRUE)
+        # add the viewport frame inside the canvas
+        self.canvasWindow = self.canvas.create_window((4,4), window=self.viewport, anchor=NW, tags="self.viewport")
 
-# Question Label
-questionLabel = Label(frameQuestionSelect, bg='#885', padx=8,
-                      text='Ποιο είναι το υψόμετρο της κορυφής «Μύτικας», της υψηλοτερη κορυφής του Ολύμπου;')
-questionLabel.pack(side=LEFT)
+        # bind an event whenever the size  of the viewport frame changes
+        self.viewport.bind('<Configure>', self.onFrameConfigure)
+        # bind an event whenever the size of the canvas frame changes
+        self.canvas.bind('<Configure>', self.onCanvasConfigure)
+
+        # bind wheel events when the cursor enters (hover) the viewport
+        self.viewport.bind('<Enter>', self.onEnter)
+        # unbind wheel events when the cursor leaves (unhover) the viewport
+        self.viewport.bind('<Leave>', self.onLeave)
+
+
+        self.onFrameConfigure(None)
+
+    def onFrameConfigure(self):
+        '''
+        Reset the scroll region to fit the inner frame
+        '''
+        self.canvas.configure(scrollregion=self.canvas.bbox('all'))
+
+    def onCanvasConfigure(self, event):
+        '''
+        Reset the canvas window to fit the inner frame
+        '''
+        canvasWidth = event.width
+        # when the canvas changes size, change the size of the inner window respectively
+        self.canvas.itemconfigure(self.canvasWindow, width=canvasWidth)
+
+    # manage scroll wheel events
+    def onMouseWheel(self, event):
+        if platform.system() == 'Windows':
+            self.canvas.yview_scroll(int(-1*(event.delta/120)), 'units')
+        elif platform.system() == 'Darwin':
+            self.canvas.yview_scroll(int(-1*event.delta), 'units')
+        else:
+            if event.num == 4:
+                self.canvas.yview_scroll(-1, 'units')
+            elif event.num == 5:
+                self.canvas.yview_scroll(1, 'units')
+
+
+    # bind wheel when mouse enters (hover) the canvas
+    def onEnter(self):
+        if platform.system() == 'Linux':
+            self.canvas.bind_all('<Button-4>', self.onMouseWheel)
+            self.canvas.bind_all('<Button-5>', self.onMouseWheel)
+        else:
+            self.canvas.bind_all('<MouseWheel>', self.onMouseWheel)
+
+    # unbind wheel when mouse leaves (unhover) the canvas
+    def onLeave(self):
+        if platform.system() == 'Linux':
+            self.canvas.unbind_all('<Button-4')
+            self.canvas.unbind_all('<Button-5')
+        else:
+            self.canvas.unbind_all('MouseWheel')
+
+
+
+
+
 
 
 win.mainloop()
