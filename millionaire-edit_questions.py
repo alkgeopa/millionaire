@@ -1,8 +1,6 @@
-from random import choice
 from tkinter import *
 from tkinter import ttk
 from tinydb import TinyDB, Query
-import platform
 
 
 db = TinyDB('db.json')
@@ -16,7 +14,7 @@ def dummyData():
     return [
         {
             'text': 'Ποιο είναι το υψηλότερο βουνό της Ελλάδας;',
-            'difficulty': 0,
+            'difficulty': 'ε',
             'correct': 'Όλυμπος',
             'wrong': {
                 'w1': 'Ψηλορείτης',
@@ -25,8 +23,8 @@ def dummyData():
             }
         },
         {
-            'text': 'Ποιο είναι το υψος της κορυφής των Ιμαλαΐων, Έβερεστ;',
-            'difficulty': 1,
+            'text': 'Ποιο είναι το ύψος της κορυφής των Ιμαλαΐων, Έβερεστ;',
+            'difficulty': 'μ',
             'correct': '8.849 μ.',
             'wrong': {
                 'w1': '10.534 μ.',
@@ -35,8 +33,8 @@ def dummyData():
             }
         },
         {
-            'text': 'Ποιο είναι το βάθος της Τάφρου των Μαριανών',
-            'difficulty': 2,
+            'text': 'Ποιο είναι το βάθος της Τάφρου των Μαριανών;',
+            'difficulty': 'δ',
             'correct': '10.994 μ.',
             'wrong': {
                 'w1': '11.275 μ.',
@@ -48,14 +46,12 @@ def dummyData():
 
 
 questions.insert_multiple(dummyData())
+allQuestions = questions.all()
 
 
 class Question:
-    def __init__(self, text: str, difficulty: int, correct: str, wrong1: str, wrong2: str, wrong3: str) -> int:
-        if not (text or difficulty or correct or wrong1 or wrong2 or wrong3):
-            return True
-        else:
-            pass
+    def __init__(self, text: str, difficulty: int, correct: str, wrong1: str, wrong2: str, wrong3: str):
+        self.text = text
 
 
 # GUI stuff
@@ -88,41 +84,74 @@ labelFrameRight = LabelFrame(
 labelFrameRight.pack_propagate(False)
 labelFrameRight.pack(side=TOP, fill=BOTH, expand=1, pady=(0, 16))
 
-# # Container for the question list and the scrollbar
-# labelFrameLeft = LabelFrame(
-#     frameLeft, bg=defColor, width=350, text='Ερωτήσεις', padx=10, pady=10)
-# labelFrameLeft.pack_propagate(False)
-# labelFrameLeft.pack(side=TOP, fill=Y, expand=1, pady=(0, 16))
+
+def openQuestionHandler(options: dict):
+    if not OptionFrame.state['open']:
+        OptionFrame(options=options)
+        OptionFrame.state['open'] = True
+    else:
+        for widget in labelFrameRight.pack_slaves():
+            widget.destroy()
+        OptionFrame(options=options)
+        OptionFrame.state['open'] = True
 
 
-table = ttk.Treeview(frameLeft)
-table['columns'] = ('id', 'difficulty', 'text')
-table.column('#0', width=0, stretch=NO)
-table.column('id', width=80, stretch=NO)
-table.column('difficulty', anchor=NW, width=50, stretch=NO)
-table.column('text', anchor=NW)
+class Table:
+    global questions
 
-table.heading('#0', text='', anchor=W)
-table.heading('id', text=' ID', anchor=W)
-table.heading('difficulty', text=' Δυσκ.', anchor=W)
-table.heading('text', text=' Ερώτηση', anchor=W)
+    def __init__(self, parent):
+        self.tree = ttk.Treeview(parent)
+        self.tree['columns'] = ('id', 'difficulty', 'text')
+        self.tree.column('#0', width=0, stretch=NO)
+        self.tree.column('id', minwidth=80, width=80, stretch=YES)
+        self.tree.column('difficulty', anchor=NW,
+                         minwidth=50, width=50, stretch=YES)
+        self.tree.column('text', anchor=NW)
+        self.tree.heading('#0', text='', anchor=W)
+        self.tree.heading('id', text=' ID', anchor=W)
+        self.tree.heading('difficulty', text=' Δυσκ.', anchor=W)
+        self.tree.heading('text', text=' Ερώτηση', anchor=W)
 
-allQuestions = questions.all()
-for question in allQuestions:
-    print(question.get('text'))
-    table.insert(parent='', index=int(question.doc_id), iid=int(question.doc_id), values=(
-        str(question.doc_id), question.get('difficulty'), question.get('text'))
-    )
+        self.tree.pack(side=BOTTOM, fill=BOTH, expand=YES, pady=(8, 16))
 
-# for i in range(100):
-#     table.insert(parent='', index=i, iid=i, text='', values=(
-#         str(i+10000000), choice(['Ε', 'Μ', 'Δ']), 'Ποιο είναι το υψηλότερο βουνό της Ελλάδας;'))
+        self.tree.bind('<Button-1>', self.onClick)
 
-table.pack(side=BOTTOM, fill=BOTH, expand=YES, pady=(8, 16))
+    def initInsert(self, allQuestions: 'list[Document]'):
+        for i, question in enumerate(allQuestions):
+            self.tree.insert(parent='', index=int(question.doc_id), iid=int(question.doc_id), values=(
+                str(question.doc_id), question.get('difficulty'), question.get('text'))
+            )
+
+    def onClick(self, event):
+        item = self.tree.identify_row(event.y)
+        if item:
+            docId = self.tree.item(item)['values'][0]
+            OptionFrame.state['currentDocId'] = docId
+            question = questions.get(doc_id=docId)
+            openQuestionHandler({
+                'text': question['text'],
+                'difficulty': question['difficulty'],
+                'correct': question['correct'],
+                'wrong': {
+                    'w1': question['wrong']['w1'],
+                    'w2': question['wrong']['w2'],
+                    'w3': question['wrong']['w3'],
+                },
+            })
+
+    def updateTree(self, allQuestions: 'list[Document]'):
+        for question in allQuestions:
+            self.tree.insert(parent='', index=int(question.doc_id), iid=int(question.doc_id), values=(
+                str(question.doc_id), question.get('difficulty'), question.get('text'))
+            )
+
+
+questionTree = Table(frameLeft)
+questionTree.initInsert(questions.all())
 
 
 class AnswerFrame:
-    def __init__(self, parent, text, padx):
+    def __init__(self, parent, text: str = '', textBox: str = '', padx: int = 0):
         self.frame = Frame(parent, pady=10)
         self.frame.pack(side=TOP, anchor=NW, fill=X)
 
@@ -131,6 +160,10 @@ class AnswerFrame:
 
         self.text = Text(self.frame, height=1, width=30)
         self.text.grid(row=0, column=1)
+        self.text.insert(END, textBox)
+
+    def get(self, index1, index2):
+        return self.text.get(index1, index2)
 
 
 class OptionFrame:
@@ -139,10 +172,22 @@ class OptionFrame:
         'open': False,
         'duplicate': False,
         'success': False,
-        'currentFrame': None,
+        'currentDocId': None,
     }
 
-    def __init__(self):
+    def __init__(self, options=dict()):
+
+        if not options:
+            options = {
+                'text': '',
+                'difficulty': '',
+                'correct': '',
+                'wrong': {
+                    'w1': '',
+                    'w2': '',
+                    'w3': '',
+                },
+            }
 
         self.frame = Frame(labelFrameRight, bg=defColor)
         self.frame.pack(side=TOP, fill=BOTH, expand=YES)
@@ -152,19 +197,21 @@ class OptionFrame:
         self.panelText.pack(side=TOP, anchor=NW, fill=X)
 
         self.questionText = Text(self.panelText, height=4)
+        self.questionText.insert(END, options['text'])
         self.questionText.pack(side=TOP, anchor=NW, fill=X)
 
         self.difficultyFrame = LabelFrame(
             self.frame, bg=defColor, text='Δυσκολία')
         self.difficultyFrame.pack(side=TOP, anchor=NW, fill=X)
 
+        self.difVar = StringVar(None, name='dif')
         self.difficultySelelctions = [
             Radiobutton(self.difficultyFrame, text='Εύκολη',
-                        justify=LEFT, value=0, variable='dif'),
+                        justify=LEFT, value='ε', variable='dif'),
             Radiobutton(self.difficultyFrame, text='Μέτρια',
-                        justify=LEFT, value=1, variable='dif'),
+                        justify=LEFT, value='μ', variable='dif'),
             Radiobutton(self.difficultyFrame, text='Δύσκολη',
-                        justify=LEFT, value=2, variable='dif')
+                        justify=LEFT, value='δ', variable='dif')
         ]
 
         for selection in self.difficultySelelctions:
@@ -175,34 +222,93 @@ class OptionFrame:
             self.frame, text='Απαντήσεις', bg=defColor)
         self.answerFrame.pack(side=TOP, anchor=NW, fill=X)
 
-        self.correct = AnswerFrame(self.answerFrame, 'Σωστή', 22)
-        self.wrong1 = AnswerFrame(self.answerFrame, 'Λάθος 1', 16)
-        self.wrong2 = AnswerFrame(self.answerFrame, 'Λάθος 2', 16)
-        self.wrong3 = AnswerFrame(self.answerFrame, 'Λάθος 3', 16)
+        self.correct = AnswerFrame(
+            parent=self.answerFrame, text='Σωστή', textBox=options['correct'], padx=22)
+        self.wrong1 = AnswerFrame(
+            parent=self.answerFrame, text='Λάθος 1', textBox=options['wrong']['w1'], padx=16)
+        self.wrong2 = AnswerFrame(
+            parent=self.answerFrame, text='Λάθος 2', textBox=options['wrong']['w2'], padx=16)
+        self.wrong3 = AnswerFrame(
+            parent=self.answerFrame, text='Λάθος 3', textBox=options['wrong']['w3'], padx=16)
 
         self.buttonGroup = Frame(self.frame, bg=defColor, pady=16)
         self.buttonGroup.pack(side=TOP, anchor=NW)
 
-        self.saveBtn = Button(self.buttonGroup, text='Αποθήκευση')
+        self.saveBtn = Button(self.buttonGroup, text='Αποθήκευση',
+                              command=lambda: saveButtonHandler(self.getCurrentData()))
         self.saveBtn.grid(row=0, column=0, padx=(0, 10))
 
-        self.cancelBtn = Button(self.buttonGroup, text='Άκυρο')
+        self.cancelBtn = Button(
+            self.buttonGroup, text='Άκυρο', command=cancelButtonHandler)
         self.cancelBtn.grid(row=0, column=1, padx=(0, 10))
 
-        self.saveBtn = Button(self.buttonGroup, text='Διαγραφή', bg='#eaa')
-        self.saveBtn.grid(row=0, column=2, padx=(0, 10))
+        self.deleteBtn = Button(self.buttonGroup, text='Διαγραφή',
+                              bg='#eaa', command=deleteButtonHandler)
+        self.deleteBtn.grid(row=0, column=2, padx=(0, 10))
 
         OptionFrame.state['currentFrame'] = self.frame
+
+    def getCurrentData(self):
+        return {
+            'text': self.questionText.get('1.0', END).strip(),
+            'difficulty': self.difVar.get(),
+            'correct': self.correct.get('1.0', END).strip(),
+            'wrong': {
+                'w1': self.wrong1.get('1.0', END).strip(),
+                'w2': self.wrong2.get('1.0', END).strip(),
+                'w3': self.wrong3.get('1.0', END).strip(),
+            }
+        }
 
 
 def addNewButtonHandler():
     if not OptionFrame.state['open']:
-        OptionFrame.state['open'] = True
         OptionFrame()
+        OptionFrame.state['open'] = True
     else:
         OptionFrame.state['open'] = False
+        OptionFrame.state['currentDocId'] = None
         for widget in labelFrameRight.pack_slaves():
             widget.destroy()
+
+
+def saveButtonHandler(doc):
+    global questions
+    questions.insert(doc)
+
+    for widget in frameLeft.pack_slaves():
+        widget.destroy()
+
+    questionTree = Table(frameLeft)
+    questionTree.initInsert(questions.all())
+
+    addNewButton = Button(frameLeft, text='Νέα ερώτηση',
+                          command=addNewButtonHandler)
+    addNewButton.pack(side=TOP, pady=(10, 0), padx=(0, 10))
+
+
+def cancelButtonHandler():
+    OptionFrame.state['open'] = False
+    OptionFrame.state['currentDocId'] = None
+    for widget in labelFrameRight.pack_slaves():
+        widget.destroy()
+
+
+def deleteButtonHandler():
+    global questionTree, questions
+
+    questions.remove(doc_ids=[OptionFrame.state['currentDocId']])
+    cancelButtonHandler()
+
+    for widget in frameLeft.pack_slaves():
+        widget.destroy()
+
+    questionTree = Table(frameLeft)
+    questionTree.initInsert(questions.all())
+
+    addNewButton = Button(frameLeft, text='Νέα ερώτηση',
+                          command=addNewButtonHandler)
+    addNewButton.pack(side=TOP, pady=(10, 0), padx=(0, 10))
 
 
 addNewButton = Button(frameLeft, text='Νέα ερώτηση',
