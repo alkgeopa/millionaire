@@ -127,6 +127,7 @@ class Table:
         if item:
             docId = self.tree.item(item)['values'][0]
             OptionFrame.state['currentDocId'] = docId
+            OptionFrame.state['newEntry'] = False
             question = questions.get(doc_id=docId)
             openQuestionHandler({
                 'text': question['text'],
@@ -152,10 +153,10 @@ questionTree.initInsert(questions.all())
 
 class AnswerFrame:
     def __init__(self, parent, text: str = '', textBox: str = '', padx: int = 0):
-        self.frame = Frame(parent, pady=10)
+        self.frame = Frame(parent, pady=10, bg=defColor)
         self.frame.pack(side=TOP, anchor=NW, fill=X)
 
-        self.label = Label(self.frame, text=text, padx=padx)
+        self.label = Label(self.frame, text=text, padx=padx, bg=defColor)
         self.label.grid(row=0, column=0)
 
         self.text = Text(self.frame, height=1, width=30)
@@ -172,6 +173,7 @@ class OptionFrame:
         'open': False,
         'duplicate': False,
         'success': False,
+        'newEntry': False,
         'currentDocId': None,
     }
 
@@ -205,18 +207,24 @@ class OptionFrame:
         self.difficultyFrame.pack(side=TOP, anchor=NW, fill=X)
 
         self.difVar = StringVar(None, name='dif')
+
+        if options['difficulty']:
+            self.difVar.set(options['difficulty'])
+
         self.difficultySelelctions = [
             Radiobutton(self.difficultyFrame, text='Εύκολη',
-                        justify=LEFT, value='ε', variable='dif'),
+                        justify=LEFT, value='ε', variable='dif', bg=defColor),
             Radiobutton(self.difficultyFrame, text='Μέτρια',
-                        justify=LEFT, value='μ', variable='dif'),
+                        justify=LEFT, value='μ', variable='dif', bg=defColor),
             Radiobutton(self.difficultyFrame, text='Δύσκολη',
-                        justify=LEFT, value='δ', variable='dif')
+                        justify=LEFT, value='δ', variable='dif', bg=defColor)
         ]
+
+        if OptionFrame.state['newEntry']:
+            self.difVar.set('ε')
 
         for selection in self.difficultySelelctions:
             selection.pack(side=LEFT, anchor=NW)
-            selection.deselect()
 
         self.answerFrame = LabelFrame(
             self.frame, text='Απαντήσεις', bg=defColor)
@@ -234,7 +242,7 @@ class OptionFrame:
         self.buttonGroup = Frame(self.frame, bg=defColor, pady=16)
         self.buttonGroup.pack(side=TOP, anchor=NW)
 
-        self.saveBtn = Button(self.buttonGroup, text='Αποθήκευση',
+        self.saveBtn = Button(self.buttonGroup, text='Αποθήκευση' if OptionFrame.state['newEntry'] == True else 'Ενημέρωση',
                               command=lambda: saveButtonHandler(self.getCurrentData()))
         self.saveBtn.grid(row=0, column=0, padx=(0, 10))
 
@@ -243,7 +251,7 @@ class OptionFrame:
         self.cancelBtn.grid(row=0, column=1, padx=(0, 10))
 
         self.deleteBtn = Button(self.buttonGroup, text='Διαγραφή',
-                              bg='#eaa', command=deleteButtonHandler)
+                                bg='#eaa', command=deleteButtonHandler)
         self.deleteBtn.grid(row=0, column=2, padx=(0, 10))
 
         OptionFrame.state['currentFrame'] = self.frame
@@ -262,6 +270,7 @@ class OptionFrame:
 
 
 def addNewButtonHandler():
+    OptionFrame.state['newEntry'] = True
     if not OptionFrame.state['open']:
         OptionFrame()
         OptionFrame.state['open'] = True
@@ -274,7 +283,11 @@ def addNewButtonHandler():
 
 def saveButtonHandler(doc):
     global questions
-    questions.insert(doc)
+
+    if OptionFrame.state['newEntry']:
+        questions.insert(doc)
+    else:
+        questions.update(doc, doc_ids=[OptionFrame.state['currentDocId']])
 
     for widget in frameLeft.pack_slaves():
         widget.destroy()
