@@ -1,5 +1,6 @@
 from tkinter import *
 from Menu import *
+from Game import *
 from time import time
 from typedef import *
 from constants import *
@@ -62,7 +63,7 @@ class Question:
         self.selectedAnswer = answer
 
     def checkSelectedAnswer(self) -> bool:
-        if self.question['wrong'] == self.selectedAnswer:
+        if self.question['correct'] == self.selectedAnswer:
             return True
         return False
 
@@ -88,17 +89,17 @@ class MainWindow:
         self.win.bind('<F11>', self.toggleFullscreen)
         self.win.bind('<Escape>', self.endFullscreen)
 
-    def toggleFullscreen(self, event=None):
+    def toggleFullscreen(self, event=None) -> None:
         self.fullscreen = not self.fullscreen   # toggling the boolean
         self.win.attributes('-fullscreen', self.fullscreen)
         return 'break'
 
-    def endFullscreen(self, event=None):
+    def endFullscreen(self, event=None) -> None:
         self.fullscreen = False
         self.win.attributes('-fullscreen', self.fullscreen)
         return 'break'
 
-    def setLevel(self, level: str):
+    def setLevel(self, level: str) -> None:
         # First, delete all widgets inside the main window
         for child in self.win.winfo_children():
             child.destroy()
@@ -108,11 +109,16 @@ class MainWindow:
             return
         if level == GAME:
             print('IN GAME MODE')   #TODO DELETE
-            self.win.destroy()  #TODO DELETE
+            self.clearWidgets()
+            self.gameLevel = GameLevel(self.win)
             return
         if level == HALLOFFAME:
             return
         print('Error, wrong level string!')
+
+    def clearWidgets(self):
+        for child in self.win.winfo_children():
+            child.destroy()
 
 
 # Main window

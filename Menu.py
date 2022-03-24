@@ -85,7 +85,7 @@ class UsernameInput:
 
         self.username = StringVar()
         self.entry = ATextEntry(
-            self.mainFrame, background='white', relief='flat')
+            self.mainFrame, background='white', relief='flat', textvariable=self.username)
         self.entry.pack(side=TOP, anchor=N)
 
         self.okButton = AHoverButton(

@@ -17,6 +17,12 @@ class AHoverButton(Button):
         self['background'] = self.defaultBackground
         self['foreground'] = self.defaultForeground
 
+
 class ATextEntry(Entry):
     def __init__(self, master, **kw) -> None:
         super().__init__(master=master, **kw)
+
+
+class AAnswerButton(Button):
+    def __init__(self, master: Misc | None = ..., **kw) -> None:
+        super().__init__(master, **kw)
