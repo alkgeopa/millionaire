@@ -1,19 +1,20 @@
 from tkinter import *
 from Primitives import *
+from typedef import *
 from pygame import mixer
 from PIL import ImageTk, Image
 
-#
+
+
+
 class UsernameInput:
     pass
 
 
 class MainMenuLevel:
-    def __init__(self, root: Tk) -> None:
-        # self.backgroundColor = '#202169'
-        # self.foregroundColor = 'white'
-        # self.hoverBackgroundColor = 'white'
-        # self.hoverForegroundColor = 'black'
+    def __init__(self, root: Tk, callback: Callable) -> None:
+        self.root = root
+        self.callback = callback
 
         self.mainFrame = Frame(root, background='black', padx=32, pady=16)
         self.mainFrame.place(relx=0.5, rely=0.5, anchor=CENTER)
@@ -59,11 +60,37 @@ class MainMenuLevel:
 
         Destroys the menu widgets and creates a user input widget
         '''
+        for child in self.root.winfo_children():
+            child.destroy()
+
+        mixer.music.stop()
+
+        usernameInput = UsernameInput(self.root, self.callback)
 
     def hofHandler(self) -> None:
         '''
         '''
 
+
 class UsernameInput:
-    def __init__(self, root: Tk) -> None:
-        pass
+    def __init__(self, root: Tk, callback: Callable) -> None:
+        self.callback = callback
+
+        self.mainFrame = Frame(root, background='black', padx=32, pady=16)
+        self.mainFrame.place(relx=0.5, rely=0.5, anchor=CENTER)
+
+        self.textPrompt = Label(
+            self.mainFrame, background='black', foreground='white', text='Enter your name')
+        self.textPrompt.pack()
+
+        self.username = StringVar()
+        self.entry = ATextEntry(
+            self.mainFrame, background='white', relief='flat')
+        self.entry.pack(side=TOP, anchor=N)
+
+        self.okButton = AHoverButton(
+            self.mainFrame, background='#202169', foreground='white', border=0, width=10, command=self.okHandler, text='OK')
+        self.okButton.pack(side=TOP, anchor=N, pady=30)
+
+    def okHandler(self) -> None:
+        self.callback()

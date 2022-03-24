@@ -1,5 +1,5 @@
 from tkinter import *
-from tkinter import ttk
+from tkinter.ttk import *
 from tinydb import TinyDB, Query
 from typing import TypeVar
 
@@ -117,7 +117,7 @@ class Table:
     global questions
 
     def __init__(self, parent):
-        self.tree = ttk.Treeview(parent)
+        self.tree = Treeview(parent)
         self.tree['columns'] = ('id', 'difficulty', 'text')
         self.tree.column('#0', width=0, stretch=NO)
         self.tree.column('id', minwidth=80, width=80, stretch=YES)

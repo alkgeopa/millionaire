@@ -1,9 +1,9 @@
 from tkinter import *
+from Menu import *
 from time import time
 from typedef import *
 from constants import *
 from dbAPI import *
-from Menu import *
 
 
 # -----------------
@@ -104,9 +104,11 @@ class MainWindow:
             child.destroy()
 
         if level == MAINMENU:
-            self.mainMenu = MainMenuLevel(self.win)
+            self.mainMenu = MainMenuLevel(self.win, lambda: self.setLevel(GAME))
             return
         if level == GAME:
+            print('IN GAME MODE')   #TODO DELETE
+            self.win.destroy()  #TODO DELETE
             return
         if level == HALLOFFAME:
             return
