@@ -1,13 +1,24 @@
-from turtle import width
-from Primitives import *
 from PIL import ImageTk, Image
+from pygame import mixer
+from GameController import GameController
+from Primitives import *
+from dbAPI import *
 
 
 class GameLevel:
     def __init__(self, root: Tk) -> None:
         self.root = root
-        self.questionPanel = QuestionPanel(self.root, background='yellow', height=100, width=100)
-        self.questionPanel.pack()
+        GameController.initGameController(window=self.root)
+        self.question = GameController.getQuestion()
+        self.questionPanel = QuestionPanel(self.root, background='black', height=200, width=200)
+        self.questionPanel.pack(side=RIGHT, anchor=E, expand=1, fill=X)
+        self.sidePanel = SidePanel(self.root, background='black', width=500)
+        self.sidePanel.pack(side=LEFT, anchor=W)
+
+    def runLevel(self):
+        pass
+
+
 
 
 class QuestionPanel(Frame):
@@ -17,37 +28,55 @@ class QuestionPanel(Frame):
     def __init__(self, master: Misc | None = ..., **kw) -> None:
         super().__init__(master=master, **kw)
 
+        # Get question from th
+        self.question = GameController.getQuestion()
+        self.answers = []
+        self.answers.append(self.question['correct'])
+        for w in self.question['wrong']:
+            self.answers.append(self.question['wrong'][w])
+        shuffle(self.answers)
+
         self.img = self.initImage()
         self.logo = Label(self, image=self.img, background='black')
         self.logo.pack(side=TOP, anchor=N)
 
-        self.questionTextFrame = Frame(self, background='yellow')
-        self.questionTextFrame.pack(side=TOP, anchor=N)
+        self.questionTextFrame = Frame(self, background='black')
+        self.questionTextFrame.pack(side=TOP, anchor=N, expand=1, fill=X, pady=20)
         questionFont = ('Segoe UI', 12)
         self.questionText = Label(
             self.questionTextFrame,
             font=questionFont,
-            background='#010541',
+            background='black',
             foreground='white',
             bd=0,
-            text='HERE GOES THE QUESTION TEXT'
+            pady=20,
+            text=self.question['text']
         )
         self.questionText.pack(padx=1, pady=1)
 
-        self.answersFrame = Frame(self)
+        self.answersFrame = Frame(self, background='black')
         self.answersFrame.pack(side=TOP, anchor=N)
 
-        self.answer1 = AAnswerButton(self.answersFrame, text='Α. ' + 'Answer 1')
+        self.answer1 = AAnswerButton(self.answersFrame, text='Α.  ' + self.answers[0])
         self.answer1.grid(row=0, column=0, padx=20, pady=20)
 
-        self.answer2 = AAnswerButton(self.answersFrame, text='Β. ' + 'Answer 1')
+        self.answer2 = AAnswerButton(self.answersFrame, text='Β.  ' + self.answers[1])
         self.answer2.grid(row=0, column=1, padx=20, pady=20)
 
-        self.answer3 = AAnswerButton(self.answersFrame, text='Γ. ' + 'Answer 1')
+        self.answer3 = AAnswerButton(self.answersFrame, text='Γ.  ' + self.answers[2])
         self.answer3.grid(row=1, column=0, padx=20, pady=20)
 
-        self.answer4 = AAnswerButton(self.answersFrame, text='Δ. ' + 'Answer 1')
+        self.answer4 = AAnswerButton(self.answersFrame, text='Δ.  ' + self.answers[3])
         self.answer4.grid(row=1, column=1, padx=20, pady=20)
+
+
+
+        GameController.answerWidgets = [
+            self.answer1,
+            self.answer2,
+            self.answer3,
+            self.answer4,
+        ]
 
 
     def initImage(self) -> ImageTk.PhotoImage:
@@ -61,4 +90,78 @@ class QuestionPanel(Frame):
 
 
 class SidePanel(Frame):
-    pass
+
+    ammounts = [
+        '100',
+        '200',
+        '300',
+        '500',
+        '1.000',
+        '1.500',
+        '2.000',
+        '3.500',
+        '5.000',
+        '7.500',
+        '10.000',
+        '20.000',
+        '50.000',
+        '100.000',
+        '250.000'
+    ]
+
+    lifelines = [
+        '50-50',
+        'computer',
+        'skip'
+    ]
+
+    def __init__(self, master: Misc | None = ..., **kw) -> None:
+        super().__init__(master=master, **kw)
+
+        # Create lifelines' frame
+        self.lifelinesFrame = Frame(self, background='black')
+        self.lifelinesFrame.pack(side=TOP, pady=30, expand=1, fill=X)
+        self.lifelines: list[ALifelineButton] = []
+        for index, lifeline in enumerate(SidePanel.lifelines):
+            lline = ALifelineButton(self.lifelinesFrame, compound=TOP, border=0, relief=FLAT, background='black', width=116, height=86, text=lifeline)
+            self.lifelines.append(lline)
+            self.lifelines[index].setButtonImage(f'./img/{lifeline}.png')
+            self.lifelines[index].grid(row=0, column=index, padx=12)
+            GameController.availableLifelines[lifeline] = lline
+
+
+        # Create amounts' list
+        self.questionLevelsFrame = Frame(self, background='black')
+        self.questionLevelsFrame.pack(side=BOTTOM, expand=1, fill=X)
+        self.questionLevels: list[Label] = []
+        for index, level in enumerate(SidePanel.ammounts):
+            if level=='1.000' or level=='7.500':
+                self.questionLevels.append(
+                    Label(
+                        self.questionLevelsFrame,
+                        width=25,
+                        pady=1,
+                        font='Arial 20 bold underline',
+                        foreground='grey',
+                        background='black',
+                        text=f'{str(index+1)}   {level} €'
+                    )
+                )
+            else:
+                self.questionLevels.append(
+                    Label(
+                        self.questionLevelsFrame,
+                        width=25,
+                        pady=1,
+                        font='Arial 20 bold',
+                        foreground='grey',
+                        background='black',
+                        text=f'{str(index+1)}   {level} €'
+                    )
+                )
+            self.questionLevels[index].pack(side=BOTTOM, anchor=S)
+
+        self.highlightCurrentAmmount(0)
+
+    def highlightCurrentAmmount(self, index) -> None:
+        self.questionLevels[index].config(foreground='black', background='#ffb51e')

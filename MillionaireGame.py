@@ -12,12 +12,13 @@ from dbAPI import *
 
 class Player:
     def __init__(
-            self,
-            username: str = 'Player',
-            money: int = 0,
-            totalTime: float = 0,
-            meanTime: float = 0,
-            score: float = 0) -> None:
+        self,
+        username: str = 'Player',
+        money: int = 0,
+        totalTime: float = 0,
+        meanTime: float = 0,
+        score: float = 0
+    ) -> None:
 
         self.username = username
         self.money = money
@@ -25,22 +26,6 @@ class Player:
         self.meanTime = meanTime
         self.score = score
 
-
-class Game:
-    state = {}
-
-    @staticmethod
-    def resetGameState():
-        Game.state = {
-            'currentView': None,
-            'started': NO,
-            'stage': None,
-            'victory': None,
-        }
-
-
-class HallOfFame:
-    pass
 
 
 class Question:
@@ -68,14 +53,6 @@ class Question:
         return False
 
 
-class Lifeline:
-    pass
-
-
-class Money:
-    pass
-
-
 class MainWindow:
     def __init__(self) -> None:
         self.win = Tk()
@@ -83,7 +60,7 @@ class MainWindow:
         self.win.iconbitmap('./img/icon.ico')
         self.win.geometry('800x600')
         self.win.config(background='black')
-        self.win.minsize(width=800, height=600)
+        self.win.minsize(width=1150, height=720)
         self.fullscreen = True
         self.win.attributes('-fullscreen', self.fullscreen)
         self.win.bind('<F11>', self.toggleFullscreen)
@@ -108,7 +85,7 @@ class MainWindow:
             self.mainMenu = MainMenuLevel(self.win, lambda: self.setLevel(GAME))
             return
         if level == GAME:
-            print('IN GAME MODE')   #TODO DELETE
+            print('> IN GAME MODE')   #TODO DELETE
             self.clearWidgets()
             self.gameLevel = GameLevel(self.win)
             return

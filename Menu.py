@@ -41,9 +41,9 @@ class MainMenuLevel:
 
         # Menu music init
         mixer.init()
-        mixer.music.load('./sound/happy-8bit-pixel-adenture.wav')
-        mixer.music.play(loops=-1, fade_ms=5000)
-        mixer.music.set_volume(0.05)
+        mixer.music.load('./sound/main-theme.mp3')
+        mixer.music.play(loops=-1)
+        mixer.music.set_volume(0.3)
 
     def initImage(self) -> ImageTk.PhotoImage:
         '''

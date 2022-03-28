@@ -1,5 +1,5 @@
 from tkinter import *
-from tkinter.ttk import *
+from tkinter.ttk import Treeview
 from tinydb import TinyDB, Query
 from typing import TypeVar
 
@@ -8,7 +8,7 @@ Document = TypeVar('Document')
 
 
 db = TinyDB('db.json')
-db.drop_tables()    # TODO DELETE
+# db.drop_tables()    # TODO DELETE
 users = db.table('users')
 questions = db.table('questions')
 dbQuery = Query()
@@ -16,52 +16,52 @@ dbQuery = Query()
 # TODO DELETE
 
 
-def dummyData():
-    return [
-        {
-            'text': 'Ποιο είναι το υψηλότερο βουνό της Ελλάδας;',
-            'difficulty': 'ε',
-            'correct': 'Όλυμπος',
-            'wrong': {
-                'w1': 'Ψηλορείτης',
-                'w2': 'Σμόλικας',
-                'w3': 'Παρνασσός',
-            }
-        },
-        {
-            'text': 'Ποιο είναι το ύψος της κορυφής των Ιμαλαΐων, Έβερεστ;',
-            'difficulty': 'μ',
-            'correct': '8.849 μ.',
-            'wrong': {
-                'w1': '10.534 μ.',
-                'w2': '5.948 μ.',
-                'w3': '7.917 μ.',
-            }
-        },
-        {
-            'text': 'Ποιο είναι το βάθος της Τάφρου των Μαριανών;',
-            'difficulty': 'δ',
-            'correct': '10.994 μ.',
-            'wrong': {
-                'w1': '11.275 μ.',
-                'w2': '10.534 μ.',
-                'w3': '11.103 μ.',
-            }
-        },
-        {
-            'text': 'Ποιο από τα παρακάτω δεν είναι έργο του Ουίλλιαμ Σαίξπηρ;',
-            'difficulty': 'μ',
-            'correct': 'Ντάρρεν',
-            'wrong': {
-                'w1': 'Ο Έμπορος της Βενετίας',
-                'w2': 'Πολύ κακό για το τίποτα',
-                'w3': 'Οθέλλος',
-            }
-        }
-    ]
+# def dummyData():
+#     return [
+#         {
+#             'text': 'Ποιο είναι το υψηλότερο βουνό της Ελλάδας;',
+#             'difficulty': 'ε',
+#             'correct': 'Όλυμπος',
+#             'wrong': {
+#                 'w1': 'Ψηλορείτης',
+#                 'w2': 'Σμόλικας',
+#                 'w3': 'Παρνασσός',
+#             }
+#         },
+#         {
+#             'text': 'Ποιο είναι το ύψος της κορυφής των Ιμαλαΐων, Έβερεστ;',
+#             'difficulty': 'μ',
+#             'correct': '8.849 μ.',
+#             'wrong': {
+#                 'w1': '10.534 μ.',
+#                 'w2': '5.948 μ.',
+#                 'w3': '7.917 μ.',
+#             }
+#         },
+#         {
+#             'text': 'Ποιο είναι το βάθος της Τάφρου των Μαριανών;',
+#             'difficulty': 'δ',
+#             'correct': '10.994 μ.',
+#             'wrong': {
+#                 'w1': '11.275 μ.',
+#                 'w2': '10.534 μ.',
+#                 'w3': '11.103 μ.',
+#             }
+#         },
+#         {
+#             'text': 'Ποιο από τα παρακάτω δεν είναι έργο του Ουίλλιαμ Σαίξπηρ;',
+#             'difficulty': 'μ',
+#             'correct': 'Ντάρρεν',
+#             'wrong': {
+#                 'w1': 'Ο Έμπορος της Βενετίας',
+#                 'w2': 'Πολύ κακό για το τίποτα',
+#                 'w3': 'Οθέλλος',
+#             }
+#         }
+#     ]
 
 
-questions.insert_multiple(dummyData())  # TODO DELETE
+# questions.insert_multiple(dummyData())  # TODO DELETE
 allQuestions = questions.all()
 
 
@@ -176,7 +176,7 @@ class AnswerFrame:
         self.label = Label(self.frame, text=text, padx=padx, bg=defColor)
         self.label.grid(row=0, column=0)
 
-        self.text = Text(self.frame, font=('Segoe UI', 9), wrap=WORD, height=1, width=30)
+        self.text = Text(self.frame, font=('Segoe UI', 9), height=1, width=30)
         self.text.grid(row=0, column=1)
         self.text.insert(END, textBox)
 
