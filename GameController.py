@@ -1,10 +1,12 @@
-from tkinter import Tk
+from tkinter import Tk, Frame
 from numpy.random import choice
-from typedef import Document
+from typedef import Document, Callable
 from dbAPI import *
 
 class GameController:
     globalWindow: Tk
+    replaceQuestion: Callable
+    goToNextQuestion: Callable
     currentStage: int
     currentQuestion: int
     question: Document
@@ -12,6 +14,13 @@ class GameController:
     availableLifelines: dict
     answerSelected: str
     allQuestions: dict
+
+    lifelines = [
+        '50-50',
+        'computer',
+        'skip'
+    ]
+
 
     @classmethod
     def printDebug(self):
@@ -34,13 +43,29 @@ class GameController:
         GameController.allQuestions = getQuestions()
 
     @classmethod
+    def setStage(self) -> None:
+        if GameController.currentQuestion < 5 :
+            GameController.currentStage = 0
+            return
+        if GameController.currentQuestion < 10 :
+            GameController.currentStage = 1
+            return
+        GameController.currentStage = 2
+
+
+
+    @classmethod
     def getQuestion(self) -> Document:
+        print(f'~In GameController.getQuestion(). currentStage={GameController.currentStage}')
         if GameController.currentStage==0:
             GameController.question = GameController.allQuestions['easy'].pop()
         if GameController.currentStage==1:
             GameController.question = GameController.allQuestions['medium'].pop()
+            print(GameController.question['text'])
         if GameController.currentStage==2:
             GameController.question = GameController.allQuestions['hard'].pop()
+
+        print(f'>Getting question: {GameController.question["text"]}')
         return GameController.question
 
     @classmethod
@@ -71,6 +96,7 @@ class GameController:
         if ident=='50-50':
             print(f'lifeline selected: {ident}')
 
+            GameController.lifelines.pop(0)
             return
         if ident=='computer':
             print(f'lifeline selected: {ident}')
@@ -81,14 +107,38 @@ class GameController:
                         weights.append(0.91)
                     else:
                         weights.append(0.03)
+            elif 5 <= GameController.currentQuestion <10:
+                for answerWidget in GameController.answerWidgets:
+                    if answerWidget.getAnswerText().strip() == GameController.question['correct'].strip():
+                        weights.append(0.76)
+                    else:
+                        weights.append(0.08)
+            else:
+                for answerWidget in GameController.answerWidgets:
+                    if answerWidget.getAnswerText().strip() == GameController.question['correct'].strip():
+                        weights.append(0.50)
+                    else:
+                        weights.append(0.16)
 
             suggestion = choice(GameController.answerWidgets, p=weights)
             print(suggestion.getAnswerText().strip())
             suggestion.changeSuggestionColor()
 
+            GameController.lifelines.pop(1)
             return
         if ident=='skip':
             print(f'lifeline selected: {ident}')
+            GameController.replaceQuestion()
 
+            GameController.lifelines.pop(2)
             return
 
+
+
+    @classmethod
+    def nextQuestion(self) -> None:
+        GameController.currentQuestion += 1
+        GameController.setStage()
+        print(f'> Going to question {GameController.currentQuestion + 1}, stage: {GameController.currentStage}')
+        GameController.goToNextQuestion()
+        GameController.answerSelected = ''

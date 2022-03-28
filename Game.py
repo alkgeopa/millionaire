@@ -9,7 +9,9 @@ class GameLevel:
     def __init__(self, root: Tk) -> None:
         self.root = root
         GameController.initGameController(window=self.root)
-        self.question = GameController.getQuestion()
+        GameController.replaceQuestion = self.replaceQuestion
+        GameController.goToNextQuestion = self.nextQuestion
+        # self.question = GameController.getQuestion() //DELETE
         self.questionPanel = QuestionPanel(self.root, background='black', height=200, width=200)
         self.questionPanel.pack(side=RIGHT, anchor=E, expand=1, fill=X)
         self.sidePanel = SidePanel(self.root, background='black', width=500)
@@ -17,6 +19,17 @@ class GameLevel:
 
     def runLevel(self):
         pass
+
+    def replaceQuestion(self):
+        self.questionPanel.destroy()
+        self.questionPanel = QuestionPanel(self.root, background='black', height=200, width=200)
+        self.questionPanel.pack(side=RIGHT, anchor=E, expand=1, fill=X)
+
+    def nextQuestion(self):
+        self.sidePanel.destroy()
+        self.sidePanel = SidePanel(self.root, background='black', width=500)
+        self.sidePanel.pack(side=LEFT, anchor=W)
+        self.replaceQuestion()
 
 
 
@@ -109,12 +122,6 @@ class SidePanel(Frame):
         '250.000'
     ]
 
-    lifelines = [
-        '50-50',
-        'computer',
-        'skip'
-    ]
-
     def __init__(self, master: Misc | None = ..., **kw) -> None:
         super().__init__(master=master, **kw)
 
@@ -122,7 +129,7 @@ class SidePanel(Frame):
         self.lifelinesFrame = Frame(self, background='black')
         self.lifelinesFrame.pack(side=TOP, pady=30, expand=1, fill=X)
         self.lifelines: list[ALifelineButton] = []
-        for index, lifeline in enumerate(SidePanel.lifelines):
+        for index, lifeline in enumerate(GameController.lifelines):
             lline = ALifelineButton(self.lifelinesFrame, compound=TOP, border=0, relief=FLAT, background='black', width=116, height=86, text=lifeline)
             self.lifelines.append(lline)
             self.lifelines[index].setButtonImage(f'./img/{lifeline}.png')
@@ -161,7 +168,7 @@ class SidePanel(Frame):
                 )
             self.questionLevels[index].pack(side=BOTTOM, anchor=S)
 
-        self.highlightCurrentAmmount(0)
+        self.highlightCurrentAmmount(GameController.currentQuestion)
 
     def highlightCurrentAmmount(self, index) -> None:
         self.questionLevels[index].config(foreground='black', background='#ffb51e')

@@ -95,18 +95,19 @@ class AAnswerButton(AImageButton):
         self.text = self['text'][3:].strip()
 
         self.setButtonImage('./img/answerFrame.png')
+        self.resizeButtonImage(300, 50)
         self.defaultBackground = 'black'
         self.defaultForeground = 'white'
         self['background'] = self.defaultBackground
         self['foreground'] = self.defaultForeground
         self['activeforeground'] = self.defaultForeground
         self['activebackground'] = '#111'
+        self['font']=('Segoe UI', 9, 'bold')
         self['pady'] = 10
         self['padx'] = 10
         self['border'] = 0
         self['relief'] = 'flat'
         self['compound'] = 'center'
-        self.resizeButtonImage(300, 50)
         self.bind('<Enter>', self.on_enter)
         self.bind('<Leave>', self.on_leave)
         self['command'] = self.clickHandler
@@ -138,6 +139,7 @@ class AAnswerButton(AImageButton):
     def readyChecks(self):
         if GameController.checkAnswer():
             self.changeCorrectColor()
+            GameController.globalWindow.after(3000, GameController.nextQuestion)
         else:
             self.changeWrongColor()
             GameController.lightCorrectAnswer()
