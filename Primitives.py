@@ -108,15 +108,19 @@ class AAnswerButton(AImageButton):
         self['border'] = 0
         self['relief'] = 'flat'
         self['compound'] = 'center'
-        self.bind('<Enter>', self.on_enter)
-        self.bind('<Leave>', self.on_leave)
+        self.bind('<Enter>', self.onEnter)
+        self.bind('<Leave>', self.onLeave)
         self['command'] = self.clickHandler
 
-    def on_enter(self, e):
+    def onEnter(self, e):
         self['background'] = '#111'
 
-    def on_leave(self, e):
+    def onLeave(self, e):
         self['background'] = self.defaultBackground
+
+    def unbindAll(self) -> None:
+        self.unbind('<Enter>')
+        self.unbind('<Leave>')
 
     def getAnswerText(self):
         return self.text
@@ -139,7 +143,7 @@ class AAnswerButton(AImageButton):
     def readyChecks(self):
         if GameController.checkAnswer():
             self.changeCorrectColor()
-            GameController.globalWindow.after(3000, GameController.nextQuestion)
+            GameController.globalWindow.after(4000, GameController.nextQuestion)
         else:
             self.changeWrongColor()
             GameController.lightCorrectAnswer()
@@ -168,3 +172,13 @@ class AAnswerButton(AImageButton):
 
         self.suggestionAnswerSFX.play(loops=0)
         self.suggestionAnswerSFX.set_volume(0.2)
+
+    def changeBlackColor(self):
+        self.setButtonImage('./img/answerRemoved.png')
+        self.resizeButtonImage(300, 50)
+
+
+class ATimerLabel(Label):
+    def __init__(self, master: Misc | None = ..., **kw) -> None:
+        super().__init__(master=master, **kw)
+

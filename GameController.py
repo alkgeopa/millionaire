@@ -1,7 +1,9 @@
-from tkinter import Tk, Frame
-from numpy.random import choice
+from tkinter import Tk
+from pygame import mixer
+from numpy.random import choice, shuffle
 from typedef import Document, Callable
 from dbAPI import *
+
 
 class GameController:
     globalWindow: Tk
@@ -20,7 +22,6 @@ class GameController:
         'computer',
         'skip'
     ]
-
 
     @classmethod
     def printDebug(self):
@@ -44,25 +45,25 @@ class GameController:
 
     @classmethod
     def setStage(self) -> None:
-        if GameController.currentQuestion < 5 :
+        if GameController.currentQuestion < 5:
             GameController.currentStage = 0
             return
-        if GameController.currentQuestion < 10 :
+        if GameController.currentQuestion < 10:
             GameController.currentStage = 1
             return
         GameController.currentStage = 2
 
-
-
     @classmethod
     def getQuestion(self) -> Document:
-        print(f'~In GameController.getQuestion(). currentStage={GameController.currentStage}')
-        if GameController.currentStage==0:
+        print(
+            f'~In GameController.getQuestion(). currentStage={GameController.currentStage}')
+        if GameController.currentStage == 0:
             GameController.question = GameController.allQuestions['easy'].pop()
-        if GameController.currentStage==1:
-            GameController.question = GameController.allQuestions['medium'].pop()
+        if GameController.currentStage == 1:
+            GameController.question = GameController.allQuestions['medium'].pop(
+            )
             print(GameController.question['text'])
-        if GameController.currentStage==2:
+        if GameController.currentStage == 2:
             GameController.question = GameController.allQuestions['hard'].pop()
 
         print(f'>Getting question: {GameController.question["text"]}')
@@ -88,17 +89,22 @@ class GameController:
         return False
 
     @classmethod
-    def afterSelectionSequence():
-        ...
-
-    @classmethod
     def lifelineHandler(self, ident: str):
-        if ident=='50-50':
+        if ident == '50-50':
             print(f'lifeline selected: {ident}')
 
-            GameController.lifelines.pop(0)
+            wrong = list(GameController.question['wrong'].values())
+            shuffle(wrong)
+            for answerWidget in GameController.answerWidgets:
+                if answerWidget.getAnswerText().strip() in wrong[:-1]:
+                    answerWidget.destroy()
+
+            sfx = mixer.Sound('./sound/50-50.mp3')
+            sfx.play()
+
+            GameController.lifelines.remove('50-50')
             return
-        if ident=='computer':
+        if ident == 'computer':
             print(f'lifeline selected: {ident}')
             weights: float = []
             if GameController.currentQuestion < 5:
@@ -107,7 +113,7 @@ class GameController:
                         weights.append(0.91)
                     else:
                         weights.append(0.03)
-            elif 5 <= GameController.currentQuestion <10:
+            elif 5 <= GameController.currentQuestion < 10:
                 for answerWidget in GameController.answerWidgets:
                     if answerWidget.getAnswerText().strip() == GameController.question['correct'].strip():
                         weights.append(0.76)
@@ -116,7 +122,7 @@ class GameController:
             else:
                 for answerWidget in GameController.answerWidgets:
                     if answerWidget.getAnswerText().strip() == GameController.question['correct'].strip():
-                        weights.append(0.50)
+                        weights.append(0.52)
                     else:
                         weights.append(0.16)
 
@@ -124,21 +130,28 @@ class GameController:
             print(suggestion.getAnswerText().strip())
             suggestion.changeSuggestionColor()
 
-            GameController.lifelines.pop(1)
+            GameController.lifelines.remove('computer')
             return
-        if ident=='skip':
+        if ident == 'skip':
             print(f'lifeline selected: {ident}')
             GameController.replaceQuestion()
 
-            GameController.lifelines.pop(2)
+            GameController.lifelines.remove('skip')
             return
-
-
 
     @classmethod
     def nextQuestion(self) -> None:
         GameController.currentQuestion += 1
         GameController.setStage()
-        print(f'> Going to question {GameController.currentQuestion + 1}, stage: {GameController.currentStage}')
+        print(
+            f'> Going to question {GameController.currentQuestion + 1}, stage: {GameController.currentStage}')
         GameController.goToNextQuestion()
         GameController.answerSelected = ''
+
+    @classmethod
+    def win(self):
+        ...
+
+    @classmethod
+    def defeat(self):
+        ...
