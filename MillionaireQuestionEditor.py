@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter.ttk import Treeview
+from turtle import width
 from tinydb import TinyDB, Query
 from typing import TypeVar
 
@@ -169,11 +170,11 @@ questionTree.initInsert(questions.all())
 
 
 class AnswerFrame:
-    def __init__(self, parent, text: str = '', textBox: str = '', padx: int = 0):
+    def __init__(self, parent, text: str = '', textBox: str = '', padx: int = 0, anchor='', width=None):
         self.frame = Frame(parent, pady=10, bg=defColor)
         self.frame.pack(side=TOP, anchor=NW, fill=X)
 
-        self.label = Label(self.frame, text=text, padx=padx, bg=defColor)
+        self.label = Label(self.frame, text=text, anchor=anchor, padx=padx, width=width, bg=defColor)
         self.label.grid(row=0, column=0)
 
         self.text = Text(self.frame, font=('Segoe UI', 9), height=1, width=30)
@@ -249,13 +250,13 @@ class OptionFrame:
         self.answerFrame.pack(side=TOP, anchor=NW, fill=X)
 
         self.correct = AnswerFrame(
-            parent=self.answerFrame, text='Σωστή', textBox=options['correct'], padx=20)
+            parent=self.answerFrame, text='Σωστή', anchor='w', textBox=options['correct'], width=10)
         self.wrong1 = AnswerFrame(
-            parent=self.answerFrame, text='Λάθος 1', textBox=options['wrong']['w1'], padx=16)
+            parent=self.answerFrame, text='Λάθος 1', anchor='w', textBox=options['wrong']['w1'], width=10)
         self.wrong2 = AnswerFrame(
-            parent=self.answerFrame, text='Λάθος 2', textBox=options['wrong']['w2'], padx=16)
+            parent=self.answerFrame, text='Λάθος 2', anchor='w', textBox=options['wrong']['w2'], width=10)
         self.wrong3 = AnswerFrame(
-            parent=self.answerFrame, text='Λάθος 3', textBox=options['wrong']['w3'], padx=16)
+            parent=self.answerFrame, text='Λάθος 3', anchor='w', textBox=options['wrong']['w3'], width=10)
 
         self.buttonGroup = Frame(self.frame, bg=defColor, pady=16)
         self.buttonGroup.pack(side=TOP, anchor=NW)

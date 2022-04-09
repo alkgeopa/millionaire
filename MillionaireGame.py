@@ -1,10 +1,11 @@
 from tkinter import *
-from Menu import *
-from Game import *
-from time import time
 from typedef import *
 from constants import *
 from dbAPI import *
+from Menu import *
+from Game import *
+from time import time
+import colorama
 
 
 # -----------------
@@ -66,6 +67,9 @@ class MainWindow:
         self.win.bind('<F11>', self.toggleFullscreen)
         self.win.bind('<Escape>', self.endFullscreen)
 
+    def getRootWidget(self):
+        return self.win
+
     def toggleFullscreen(self, event=None) -> None:
         self.fullscreen = not self.fullscreen   # toggling the boolean
         self.win.attributes('-fullscreen', self.fullscreen)
@@ -97,6 +101,7 @@ class MainWindow:
         for child in self.win.winfo_children():
             child.destroy()
 
+colorama.init()
 
 # Main window
 mainWindow = MainWindow()

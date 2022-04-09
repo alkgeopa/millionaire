@@ -1,5 +1,6 @@
 from tkinter import Tk
 from pygame import mixer
+from colorama import Fore, Back, Style
 from numpy.random import choice, shuffle
 from typedef import Document, Callable
 from dbAPI import *
@@ -106,7 +107,7 @@ class GameController:
             return
         if ident == 'computer':
             print(f'lifeline selected: {ident}')
-            weights: float = []
+            weights: list[float] = []
             if GameController.currentQuestion < 5:
                 for answerWidget in GameController.answerWidgets:
                     if answerWidget.getAnswerText().strip() == GameController.question['correct'].strip():
@@ -150,8 +151,8 @@ class GameController:
 
     @classmethod
     def win(self):
-        ...
+        print(f'{Back.GREEN}{Fore.BLACK}⭐YOU HAVE WON!⭐{Style.RESET_ALL}') #!
 
     @classmethod
     def defeat(self):
-        ...
+        print(f'{Back.RED}{Fore.BLACK}😓YOU HAVE LOST!😓{Style.RESET_ALL}') #!

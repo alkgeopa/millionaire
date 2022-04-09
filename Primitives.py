@@ -84,7 +84,7 @@ class ALifelineButton(AImageButton):
 
 
 class AAnswerButton(AImageButton):
-    def __init__(self, master: Misc | None = ..., **kw) -> None:
+    def __init__(self, master: Misc | None = ..., controller: Misc | None = ..., **kw) -> None:
         super().__init__(master, **kw)
 
         self.finalAnswerSFX = mixer.Sound('./sound/final-answer.mp3')
@@ -178,7 +178,16 @@ class AAnswerButton(AImageButton):
         self.resizeButtonImage(300, 50)
 
 
-class ATimerLabel(Label):
+class ATextFrame(Frame):
     def __init__(self, master: Misc | None = ..., **kw) -> None:
         super().__init__(master=master, **kw)
+
+
+
+    def initBackgroundImage(self, path: str) -> ImageTk.PhotoImage:
+        ...
+
+    def setBackgroundImage(self, path: str) -> None:
+        ...
+
 

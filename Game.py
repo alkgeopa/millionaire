@@ -1,5 +1,6 @@
 from PIL import ImageTk, Image
 from pygame import mixer
+from colorama import Fore, Back, Style
 from GameController import GameController
 from Primitives import *
 from dbAPI import *
@@ -36,7 +37,7 @@ class GameLevel:
 
 class QuestionPanel(Frame):
     '''
-    Extends Tk.Frame class
+    Extends ``Tk.Frame`` class
     '''
     def __init__(self, master: Misc | None = ..., **kw) -> None:
         super().__init__(master=master, **kw)
@@ -70,7 +71,7 @@ class QuestionPanel(Frame):
         self.answersFrame = Frame(self, background='black')
         self.answersFrame.pack(side=TOP, anchor=N)
 
-        self.answer1 = AAnswerButton(self.answersFrame, text='Α.  ' + self.answers[0])
+        self.answer1 = AAnswerButton(self.answersFrame, controller=GameController, text='Α.  ' + self.answers[0])
         self.answer1.grid(row=0, column=0, padx=20, pady=20)
 
         self.answer2 = AAnswerButton(self.answersFrame, text='Β.  ' + self.answers[1])
@@ -172,3 +173,29 @@ class SidePanel(Frame):
 
     def highlightCurrentAmmount(self, index) -> None:
         self.questionLevels[index].config(foreground='black', background='#ffb51e')
+
+
+class WinFrame(Frame):
+    def __init__(self, master: Misc | None = ..., **kw) -> None:
+        super().__init__(master=master, **kw)
+
+
+
+        self.title = Label(
+            self,
+            background='black',
+            foreground='white',
+            font=('Segoe UI', 30,
+            'bold'),
+            text='{PLAYERNAME}, you won!'
+        )
+        self.title.pack(side=TOP, anchor=N)
+
+        self.wonAmount = Label(
+            self,
+            background='black',
+            foreground='yellow',
+            font=('Segoe UI', 36,
+            'bold'),
+            text='💶 {AMOUNT} € 💶'
+        )
