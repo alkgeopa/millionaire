@@ -22,13 +22,12 @@ class MainWindow(Tk):
         self.myTitle.pack(side='top', anchor='n')
 
         # Create a + button...
-        self.myUpButton = Button(
-            master=self, text='Count up', command=self.countUp)
+        self.myUpButton = Button(master=self, text='Count up', command=self.countUp)
         # ...and put it on screen!
         self.myUpButton.pack(side='top', anchor='n')
 
         # Create a counterFrame...
-        self.counter = counterFrame(self)
+        self.counter = counterFrame(master=self)
         # ...and put it on screen!
         self.counter.pack(side='top', anchor='n', pady=10)
 
