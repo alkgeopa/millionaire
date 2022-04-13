@@ -1,7 +1,6 @@
 from PIL import ImageTk, Image
 from pygame import mixer
-from colorama import Fore, Back, Style
-from GameController import GameController
+from Controller import GameController
 from Primitives import *
 from dbAPI import *
 
@@ -130,12 +129,13 @@ class SidePanel(Frame):
         self.lifelinesFrame = Frame(self, background='black')
         self.lifelinesFrame.pack(side=TOP, pady=30, expand=1, fill=X)
         self.lifelines: list[ALifelineButton] = []
-        for index, lifeline in enumerate(GameController.lifelines):
+        for index, lifeline in enumerate(GameController.availableLifelines.keys()):
             lline = ALifelineButton(self.lifelinesFrame, compound=TOP, border=0, relief=FLAT, background='black', width=116, height=86, text=lifeline)
             self.lifelines.append(lline)
             self.lifelines[index].setButtonImage(f'./img/{lifeline}.png')
             self.lifelines[index].grid(row=0, column=index, padx=12)
             GameController.availableLifelines[lifeline] = lline
+            print(GameController.availableLifelines[lifeline].winfo_id())
 
 
         # Create amounts' list

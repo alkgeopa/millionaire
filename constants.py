@@ -7,3 +7,10 @@ GAME = 'game'
 EASY = 'ε'
 MEDIUM = 'μ'
 HARD = 'δ'
+
+# Lifelines
+lifelines = [
+    '50-50',
+    'computer',
+    'skip'
+]

@@ -22,7 +22,8 @@ class MainWindow(Tk):
         self.myTitle.pack(side='top', anchor='n')
 
         # Create a + button...
-        self.myUpButton = Button(master=self, text='Count up', command=self.countUp)
+        self.myUpButton = Button(master=self, text='Count up')
+        self.myUpButton.bind('<Button-1>', self.countUp)
         # ...and put it on screen!
         self.myUpButton.pack(side='top', anchor='n')
 
@@ -32,17 +33,23 @@ class MainWindow(Tk):
         self.counter.pack(side='top', anchor='n', pady=10)
 
         # Create a - button...
-        self.myDownButton = Button(master=self, text='Count down', command=self.countDown)
+        self.myDownButton = Button(master=self, text='Count down')
+        self.myDownButton.bind('<Button-1>', self.countDown)
         # ...and put it on screen!
         self.myDownButton.pack(side='top', anchor='n')
 
     # Callback function for the + button
-    def countUp(self) -> None:
+    def countUp(self, event: Event) -> None:
+        self.printWidgetInfo(event.widget)
         self.counter.increase()
 
     # Callback function for the - button
-    def countDown(self) -> None:
+    def countDown(self, event: Event) -> None:
+        self.printWidgetInfo(event.widget)
         self.counter.decrease()
+
+    def printWidgetInfo(self, widget: Widget) -> None:
+        print(f'Clicked on widget: {widget.winfo_class()} - {widget["text"]}')
 
 # MainWindow inherits the Frame class
 # a.k.a. acts like a Frame plus has some extra functionality/components

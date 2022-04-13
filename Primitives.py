@@ -1,7 +1,7 @@
 from tkinter import *
 from PIL import Image, ImageTk
 from pygame import mixer
-from GameController import GameController
+from Controller import GameController
 
 
 class ATextEntry(Entry):
@@ -73,9 +73,10 @@ class ALifelineButton(AImageButton):
 
         self.text: str = self['text']
         self['text'] = ''
-        self['command'] = self.clickHandler
+        self.bind('1>', self.clickHandler)
 
-    def clickHandler(self):
+
+    def clickHandler(self, event: Event=None):
         if self.text in GameController.availableLifelines.keys():
             GameController.lifelineHandler(self.text)
             self.destroy()
@@ -110,12 +111,12 @@ class AAnswerButton(AImageButton):
         self['compound'] = 'center'
         self.bind('<Enter>', self.onEnter)
         self.bind('<Leave>', self.onLeave)
-        self['command'] = self.clickHandler
+        self.bind('<Button-1>', self.clickHandler)
 
-    def onEnter(self, e):
+    def onEnter(self, event: Event=None):
         self['background'] = '#111'
 
-    def onLeave(self, e):
+    def onLeave(self, event: Event=None):
         self['background'] = self.defaultBackground
 
     def unbindAll(self) -> None:
@@ -125,7 +126,8 @@ class AAnswerButton(AImageButton):
     def getAnswerText(self):
         return self.text
 
-    def clickHandler(self):
+    def clickHandler(self, event: Event=None):
+        print(event)
         GameController.printDebug()
         if not GameController.answerSelected:
             GameController.answerSelected = self.text

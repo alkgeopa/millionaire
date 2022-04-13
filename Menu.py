@@ -36,7 +36,7 @@ class MainMenuLevel:
 
         # Exit button init
         self.exit = AHoverButton(self.mainFrame, background='#202169', foreground='white',
-                                 font=fontOptions, borderwidth=0, width=15, height=1, command=root.destroy, text='EXIT')
+                                 font=fontOptions, borderwidth=0, width=15, height=1, command=root.quit, text='EXIT')
         self.exit.pack(side=TOP, anchor=N, pady=5)
 
         # Menu music init
