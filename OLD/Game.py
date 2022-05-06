@@ -130,12 +130,20 @@ class SidePanel(Frame):
         self.lifelinesFrame.pack(side=TOP, pady=30, expand=1, fill=X)
         self.lifelines: list[ALifelineButton] = []
         for index, lifeline in enumerate(GameController.availableLifelines.keys()):
-            lline = ALifelineButton(self.lifelinesFrame, compound=TOP, border=0, relief=FLAT, background='black', width=116, height=86, text=lifeline)
+
+
+            lline = ALifelineButton(self.lifelinesFrame, text=lifeline)
+
             self.lifelines.append(lline)
+
             self.lifelines[index].setButtonImage(f'./img/{lifeline}.png')
+
             self.lifelines[index].grid(row=0, column=index, padx=12)
+
+
+
             GameController.availableLifelines[lifeline] = lline
-            print(GameController.availableLifelines[lifeline].winfo_id())
+            print(GameController.availableLifelines[lifeline].text)
 
 
         # Create amounts' list
@@ -175,11 +183,9 @@ class SidePanel(Frame):
         self.questionLevels[index].config(foreground='black', background='#ffb51e')
 
 
-class WinFrame(Frame):
+class VictoryFrame(Frame):
     def __init__(self, master: Misc | None = ..., **kw) -> None:
         super().__init__(master=master, **kw)
-
-
 
         self.title = Label(
             self,

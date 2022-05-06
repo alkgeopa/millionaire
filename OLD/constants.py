@@ -1,4 +1,4 @@
-# Current Level
+# View
 MAINMENU = 'mainmenu'
 HALLOFFAME = 'halloffame'
 GAME = 'game'
@@ -14,3 +14,7 @@ lifelines = [
     'computer',
     'skip'
 ]
+
+# Answer Dimensions
+answerWidth = 116
+answerHeight = 86

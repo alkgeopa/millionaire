@@ -1,6 +1,7 @@
 from tkinter import *
 from PIL import Image, ImageTk
 from pygame import mixer
+from constants import *
 from Controller import GameController
 
 
@@ -34,7 +35,8 @@ class AImageButton(Button):
 
         self.defaultBackground = 'black'
         self.defaultForeground = 'white'
-        self['background'] = self.defaultBackground
+        if self['background'] == self['bg'] == '':
+            self['background'] = self.defaultBackground
         self['foreground'] = self.defaultForeground
         self['activebackground'] = self.defaultBackground
         self['activeforeground'] = self.defaultForeground
@@ -70,15 +72,23 @@ class AImageButton(Button):
 class ALifelineButton(AImageButton):
     def __init__(self, master: Misc | None = ..., **kw) -> None:
         super().__init__(master, **kw)
-
-        self.text: str = self['text']
+        self.type = 'LifelineButton'
+        self.text: str = self['text'].strip()
         self['text'] = ''
-        self.bind('1>', self.clickHandler)
+
+        self['border'] = 0
+        self['relief'] = FLAT
+        self['background'] = 'black'
+        self['width'] = answerWidth
+        self['height'] = answerHeight
+
+        self.bind('<Button-1>', self.clickHandler)
 
 
     def clickHandler(self, event: Event=None):
         if self.text in GameController.availableLifelines.keys():
             GameController.lifelineHandler(self.text)
+            print(self.winfo_name())
             self.destroy()
 
 
@@ -93,7 +103,9 @@ class AAnswerButton(AImageButton):
         self.wrongAnswerSFX = mixer.Sound('./sound/wrong-answer.mp3')
         self.suggestionAnswerSFX = mixer.Sound('./sound/suggestion-answer.mp3')
 
+        self.type = 'AnswerButton'
         self.text = self['text'][3:].strip()
+
 
         self.setButtonImage('./img/answerFrame.png')
         self.resizeButtonImage(300, 50)

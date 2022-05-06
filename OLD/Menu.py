@@ -3,7 +3,7 @@ from Primitives import *
 from typedef import *
 from pygame import mixer
 from PIL import ImageTk, Image
-
+from Controller import GameController
 
 
 
@@ -49,7 +49,7 @@ class MainMenuLevel:
         '''
         Prepares and returns the logo image
         '''
-        img = Image.open('./img/logo.png')
+        img = Image.open('/img/logo.png')
         img = img.resize((250, 250), Image.ANTIALIAS)
         img = ImageTk.PhotoImage(img)
         return img
@@ -83,7 +83,7 @@ class UsernameInput:
             self.mainFrame, background='black', foreground='white', text='Enter your name')
         self.textPrompt.pack()
 
-        self.username = StringVar()
+        self.username = StringVar(value='Player')
         self.entry = ATextEntry(
             self.mainFrame, background='white', relief='flat', textvariable=self.username)
         self.entry.pack(side=TOP, anchor=N)
@@ -93,4 +93,6 @@ class UsernameInput:
         self.okButton.pack(side=TOP, anchor=N, pady=30)
 
     def okHandler(self) -> None:
+        GameController.currentPlayer = self.username.get()
+        print(GameController.currentPlayer)
         self.callback()
