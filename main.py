@@ -1,7 +1,11 @@
 from tkinter import Tk
+
 from pygame import mixer
 
 from controller import ApplicationController
+
+
+
 
 
 class MainWindow(Tk):
@@ -13,7 +17,7 @@ class MainWindow(Tk):
         self["bg"] = "black"
         self.appController = ApplicationController(self)
 
-    def setView(self, view=None):
+    def setView(self, view = None):
         self.currentView = view
         self.currentView.pack()
 

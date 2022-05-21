@@ -1,13 +1,9 @@
 from widgets import *
-from typing import TYPE_CHECKING
 from constants import LIFELINES, AMOUNTS
-
-if TYPE_CHECKING:
-    from controller import LifelineController
 
 
 class SidePanelFrame(Frame):
-    def __init__(self, master: Misc | None = ..., controller: 'LifelineController' = None, **kw) -> None:
+    def __init__(self, master: Misc | None = ..., controller=None, **kw) -> None:
         super().__init__(master=master, **kw)
         self.lifelineController = controller
         self.gameController = controller.gameController
@@ -28,7 +24,7 @@ class SidePanelFrame(Frame):
         for index, lifeline in enumerate(self.lifelineController.lifelinesInfo.keys()):
             self.lifelines[index] = ALifelineButton(
                 self.lifelinesFrame,
-                f"./img/{lifeline}.png",
+                resourcePath(f"./img/{lifeline}.png"),
                 text=lifeline,
                 callback=self.lifelineController.lifelineHandler,
             )

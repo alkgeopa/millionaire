@@ -1,5 +1,4 @@
 from typing import TypedDict, Callable
-from tkinter import Tk
 
 
 # TYPE DEFINITIONS
@@ -24,4 +23,3 @@ class Player(TypedDict):
     totalTime: float
     averageQuestionTime: float
     score: float
-

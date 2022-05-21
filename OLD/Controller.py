@@ -109,7 +109,7 @@ class GameController:
                 if answerWidget.getAnswerText().strip() in wrong[:-1]:
                     answerWidget.destroy()
 
-            sfx = mixer.Sound('./sound/50-50.mp3')
+            sfx = mixer.Sound(resourcePath('./sound/50-50.mp3'))
             sfx.play()
 
             GameController.availableLifelines['50-50'].destroy()

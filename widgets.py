@@ -1,4 +1,5 @@
 from tkinter import *
+
 from PIL import Image, ImageTk
 from pygame import mixer
 
@@ -34,18 +35,6 @@ class AButton(Button):
         self.buttonImage = ImageTk.PhotoImage(self.buttonImage)
         self.config(image=self.buttonImage)
 
-    @classmethod
-    def aButtonHandler(cls):
-        if cls.__name__ == "AAnswerButton":
-            print(cls.__name__)
-            return
-        if cls.__name__ == "AMenuButton":
-            print(cls.__name__)
-            return
-        if cls.__name__ == "ALifelineButton":
-            print(cls.__name__)
-            return
-
 
 class AMenuButton(AButton):
     def __init__(self, master: Misc | None = ..., **kw) -> None:
@@ -59,14 +48,14 @@ class AAnswerButton(AButton):
     def __init__(self, master: Misc | None = ..., callback=None, **kw) -> None:
         super().__init__(master, **kw)
 
-        self.finalAnswerSFX = mixer.Sound("./sound/final-answer.mp3")
-        self.correctAnswerSFX = mixer.Sound("./sound/correct-answer.mp3")
-        self.wrongAnswerSFX = mixer.Sound("./sound/wrong-answer.mp3")
-        self.suggestionAnswerSFX = mixer.Sound("./sound/suggestion-answer.mp3")
+        self.finalAnswerSFX = mixer.Sound(resourcePath("./sound/final-answer.mp3"))
+        self.correctAnswerSFX = mixer.Sound(resourcePath("./sound/correct-answer.mp3"))
+        self.wrongAnswerSFX = mixer.Sound(resourcePath("./sound/wrong-answer.mp3"))
+        self.suggestionAnswerSFX = mixer.Sound(resourcePath("./sound/suggestion-answer.mp3"))
 
         self.text = self["text"][3:].strip()
 
-        self.imagePath = "./img/answerFrame.png"
+        self.imagePath = resourcePath("./img/answerFrame.png")
         self.resizeButtonImage(300, 50)
         self.defaultBackground = "black"
         self.defaultForeground = "white"
@@ -90,16 +79,24 @@ class AAnswerButton(AButton):
         self.callback(event)
 
     def changeCorrectColor(self):
-        self.setButtonImage("./img/answerCorrect.png")
+        self.setButtonImage(resourcePath("./img/answerCorrect.png"))
         self.resizeButtonImage(300, 50)
 
     def changeWrongColor(self):
-        self.setButtonImage("./img/answerWrong.png")
+        self.setButtonImage(resourcePath("./img/answerWrong.png"))
         self.resizeButtonImage(300, 50)
 
     def changeSuggestionColor(self):
-        self.setButtonImage("./img/answerSuggestion.png")
+        self.setButtonImage(resourcePath("./img/answerSuggestion.png"))
         self.resizeButtonImage(300, 50)
+
+    def disable(self, hide: bool = False):
+        self.unbind('<1>')
+        self.bind('<1>', lambda _: 'break')
+        if hide:
+            self.setButtonImage(resourcePath("./img/answerRemoved.png"))
+            self.resizeButtonImage(300, 50)
+            self['fg'] = 'black'
 
 
 class ALifelineButton(AButton):
@@ -110,7 +107,7 @@ class ALifelineButton(AButton):
 
         self["bg"] = self.defaultBackground  # black
         self["border"] = 0
-        self["relief"] = FLAT
+        self["relief"] = 'flat'
         self["background"] = "black"
         self["width"] = ANSWERWIDTH
         self["height"] = ANSWERHEIGHT
@@ -124,35 +121,26 @@ class ALifelineButton(AButton):
         self.callback(event)
 
 
-class ImageLabel(Label):
+class LifeIcon(Label):
     def __init__(self, master, **kw):
         super().__init__(master, **kw)
-        self.image = None
-        self.imagePath = None
 
-    def setButtonImage(self, path: str):
-        self.imagePath = path
+        self.imagePath = resourcePath('./img/heart.png')
         self.image = Image.open(self.imagePath)
+        self.resizeButtonImage(32, 28)
 
     def resizeButtonImage(self, width=0, height=0):
-        if width and height :
+        if not width == height == 0:
             self.image = self.image.resize((width, height), Image.ANTIALIAS)
         self.image = ImageTk.PhotoImage(self.image)
         self.config(image=self.image)
 
-
-class LifeIcon(ImageLabel):
-    def __init__(self, master, **kw):
-        super().__init__(master, **kw)
-        self.setButtonImage(resourcePath('./img/heart.png'))
+    def setButtonImage(self, path: str):
+        self.imagePath = path
+        self.image = Image.open(self.imagePath)
         self.resizeButtonImage(32, 28)
 
     def disable(self):
         self.imagePath = resourcePath('./img/heartGray.png')
         self.image = Image.open(self.imagePath)
         self.resizeButtonImage(32, 28)
-
-
-class Timer(ImageLabel):
-    def __init__(self, master: Misc | None = ..., **kw) -> None:
-        super().__init__(master, **kw)
