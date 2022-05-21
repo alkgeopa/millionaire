@@ -1,8 +1,13 @@
+import imp
 from widgets import *
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from controller import QuestionController
 
 
 class QuestionFrame(Frame):
-    def __init__(self, master: Misc | None = ..., controller=None, **kw) -> None:
+    def __init__(self, master: Misc | None = ..., controller: 'QuestionController'=None, **kw) -> None:
         super().__init__(master=master, **kw)
         self.questionController = controller
         self.pack(side=RIGHT, anchor=E, expand=1, fill=X)
@@ -31,14 +36,25 @@ class QuestionFrame(Frame):
         # Από εδώ αρχίζουμε να γράφουμε
         self["background"] = "black"
 
-        self.lifesFrame = Frame(self)
-        self.lifesFrame.pack(pady=10)
-        self.lifesLabel = Label(self.lifesFrame, text='Lives:')
-        self.lifesLabel.grid(row=0, column=0)
-        self.lifesNum = Label(self.lifesFrame, textvariable=self.questionController.gameController.livesVar)
-        self.lifesNum.grid(row=0, column=1)
+        self.infoFrame = Frame(self)
+        self.infoFrame.pack()
 
-        self.timerFrame = Frame(self)
+        self.playerName = Label(self.infoFrame, textvariable=self.questionController.gameController.playerName)
+        self.playerName.pack(pady=10)
+
+        self.lifesFrame = Frame(self.infoFrame)
+        self.lifesFrame.pack(pady=10)
+
+        self.lives: list[LifeIcon] = []
+        for i in range(self.questionController.gameController.maxLives):
+            if i < self.questionController.gameController.lives:
+                self.lives.append(LifeIcon(self.lifesFrame))
+            else:
+                self.lives.append(LifeIcon(self.lifesFrame))
+                self.lives[-1].setButtonImage(resourcePath('./img/heartGray.png'))
+            self.lives[-1].pack(side=LEFT, anchor=E)
+
+        self.timerFrame = Frame(self.infoFrame)
         self.timerFrame.pack(pady=10)
         self.timerLabel = Label(self.timerFrame, text='Timer:')
         self.timerLabel.grid(row=0, column=0)
@@ -46,14 +62,15 @@ class QuestionFrame(Frame):
         self.timerNum.grid(row=0, column=1)
         self.questionController.updateTimer()
 
-        self.questionText = Label(self, text=self.questionController.questionText, font=('sans-serif', 12, 'bold'),
-                                  wraplength=600)
+        self.questionText = Label(
+            self, text=self.questionController.questionText, font=('sans-serif', 12, 'bold'), wraplength=600
+        )
         self.questionText.pack()
         self.answersFrame = Frame(self, bg='black')
         self.answersFrame.pack()
         self.answersFrame.rowconfigure((0, 1), minsize=ANSWERHEIGHT + 10)
         self.answersFrame.columnconfigure((0, 1), minsize=ANSWERWIDTH + 10)
-        self.answers: list[AAnswerButton] = [None] * 4
+        self.answers = [AAnswerButton] * 4
         for index, answer in enumerate(self.questionController.getNextAnswer()):
             self.answers[index] = AAnswerButton(
                 self.answersFrame,

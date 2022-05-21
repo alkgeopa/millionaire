@@ -3,6 +3,7 @@ from PIL import Image, ImageTk
 from pygame import mixer
 
 from constants import ANSWERHEIGHT, ANSWERWIDTH
+from filePath import resourcePath
 
 
 class AButton(Button):
@@ -121,3 +122,37 @@ class ALifelineButton(AButton):
 
     def clickHandler(self, event: Event):
         self.callback(event)
+
+
+class ImageLabel(Label):
+    def __init__(self, master, **kw):
+        super().__init__(master, **kw)
+        self.image = None
+        self.imagePath = None
+
+    def setButtonImage(self, path: str):
+        self.imagePath = path
+        self.image = Image.open(self.imagePath)
+
+    def resizeButtonImage(self, width=0, height=0):
+        if width and height :
+            self.image = self.image.resize((width, height), Image.ANTIALIAS)
+        self.image = ImageTk.PhotoImage(self.image)
+        self.config(image=self.image)
+
+
+class LifeIcon(ImageLabel):
+    def __init__(self, master, **kw):
+        super().__init__(master, **kw)
+        self.setButtonImage(resourcePath('./img/heart.png'))
+        self.resizeButtonImage(32, 28)
+
+    def disable(self):
+        self.imagePath = resourcePath('./img/heartGray.png')
+        self.image = Image.open(self.imagePath)
+        self.resizeButtonImage(32, 28)
+
+
+class Timer(ImageLabel):
+    def __init__(self, master: Misc | None = ..., **kw) -> None:
+        super().__init__(master, **kw)

@@ -13,12 +13,13 @@ class MainWindow(Tk):
         self["bg"] = "black"
         self.appController = ApplicationController(self)
 
-    def setView(self, view = None):
+    def setView(self, view=None):
         self.currentView = view
         self.currentView.pack()
 
     def __str__(self):
         return 'Main Window'
+
 
 mixer.init()
 

@@ -14,7 +14,7 @@ def countAllQuestions() -> int:
 
 def prepareQuestions(difficulty: str) -> list[Document]:
     if not difficulty.isalpha():
-        Exception("@ getRandomQuestion(): The difficulty argument is not a letter.")
+        raise Exception("@ getRandomQuestion(): The difficulty argument is not a letter.")
 
     question = Query()
     questionList = db.table("questions").search(question.difficulty == difficulty)
@@ -33,24 +33,24 @@ def getQuestions():
     hardQuestions = prepareQuestions("δ")
 
     shuffle(easyQuestions)
-    easy = 6 * [Document]
-    for index in range(6):
+    easy = 8 * [Document]
+    for index in range(8):
         if easyQuestions:
             easy[index] = easyQuestions.pop()
         else:
             break
 
     shuffle(mediumQuestions)
-    medium = 6 * [Document]
-    for index in range(6):
+    medium = 8 * [Document]
+    for index in range(8):
         if mediumQuestions:
             medium[index] = mediumQuestions.pop()
         else:
             break
 
     shuffle(hardQuestions)
-    hard = 6 * [Document]
-    for index in range(6):
+    hard = 8 * [Document]
+    for index in range(8):
         if hardQuestions:
             hard[index] = hardQuestions.pop()
         else:

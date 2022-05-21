@@ -1,52 +1,59 @@
+import re
 from tkinter import *
 from pygame import mixer
+from typing import TYPE_CHECKING
 
 from time import time
 
 from numpy.random import shuffle, choice
+from names import get_first_name
 
 from constants import *
 from dbAPI import getRandomQuestion, getTopTenPlayers, getQuestions
+from filePath import resourcePath
 from gameView import GameView
 from menuView import MainMenu
 from playerNameInputView import PlayerNameInputView
 from questionFrame import QuestionFrame
 from sidePanelFrame import SidePanelFrame
 from topTenView import TopTenView
+from resultViews import VictoryView, DefeatView
+
+
+if TYPE_CHECKING:
+    from main import MainWindow
 
 
 class Controller:
-    appRoot = None
+    appRoot: 'MainWindow' = None
 
     def __init__(self) -> None:
         ...
 
 
 class ApplicationController(Controller):
-    def __init__(self, appRoot) -> None:
+    def __init__(self, appRoot: 'MainWindow') -> None:
         super(ApplicationController, self).__init__()
         Controller.appRoot = appRoot
         self.currentController = MainMenuController(self)
 
     def setController(self, controller):
-        self.currentController = controller()
+        self.currentController: MainMenuController | PlayerNameController | GameController | TopTenController = controller()
 
 
 class MainMenuController(Controller):
     def __init__(self, appController) -> None:
         super(MainMenuController, self).__init__()
-        self.appController = appController
-        self.currentView = MainMenu(self.appRoot, self)
+        self.appController: ApplicationController = appController
+        self.currentView: MainMenu | GameView = MainMenu(self.appRoot, self)
         mixer.music.load('./sound/main-theme.mp3')
         mixer.music.play(loops=-1)
         mixer.music.set_volume(0.3)
 
     def startHandler(self):
         self.currentView.destroy()
-        mixer.music.stop()
-        self.appController.setController(
-            lambda: PlayerNameController(self.appController)
-        )
+        mixer.music.fadeout(200)
+        self.appController.setController(lambda: PlayerNameController(self.appController))
 
     def topTenHandler(self):
         self.currentView.destroy()
@@ -56,44 +63,67 @@ class MainMenuController(Controller):
 class PlayerNameController(Controller):
     def __init__(self, appController) -> None:
         super(PlayerNameController, self).__init__()
-        self.appController = appController
+        self.appController: ApplicationController = appController
+        self.playerName = StringVar(value=get_first_name())
         self.currentView = PlayerNameInputView(self.appRoot, self)
+        self.sfx = mixer.Sound(resourcePath('./sound/lets-play.mp3'))
+        self.sfx.set_volume(0.1)
+        self.sfx.play()
 
-    def startHandler(self, playerName: str):
-        print(f'Player\'s name: {playerName or "None"}')
+    def startHandler(self):
+        print(f'{self.playerName.get() = }')
+        self.sfx.fadeout(500)
         self.currentView.destroy()
-        self.appController.setController(lambda: GameController(self.appController))
+        self.appController.setController(lambda: GameController(self.appController, self.playerName))
 
 
 class GameController(Controller):
-    def __init__(self, appController) -> None:
+    def __init__(self, appController: ApplicationController, playerName: StringVar = None) -> None:
         super(GameController, self).__init__()
-        self.livesVar = IntVar(value=3)
+        self.maxLives = 3
+        self.lives = self.maxLives
         self.stage = 0
         self.level = 0
         self.skipJump = 0
+
+        self.amountWon = StringVar(value='0 €')
 
         self.questionPool = getQuestions()
 
         self.appController = appController
         self.gameView = GameView(self.appRoot)
 
+        self.playerName = playerName
+        self.questionTimes: list[float] = []
+        self.score: float = None
+
+        self.gameSounds = {
+            'suggestion-answer': mixer.Sound(resourcePath('./sound/suggestion-answer.mp3')),
+            'correct-answer': mixer.Sound(resourcePath('./sound/correct-answer.mp3')),
+            'wrong-answer': mixer.Sound(resourcePath('./sound/wrong-answer.mp3')),
+            'final-answer': mixer.Sound(resourcePath('./sound/final-answer.mp3')),
+            'question': mixer.Sound(resourcePath('./sound/question.mp3')),
+            '50-50': mixer.Sound(resourcePath('./sound/50-50.mp3')),
+            'outOfTime': mixer.Sound(resourcePath('./sound/outOfTime.mp3')),
+        }
+
         self.questionController = QuestionController(self.gameView, self)
         self.questionController.questionInit()
+
+        
 
         self.lifelinesController = LifelineController(self.gameView, self)
 
         self.sidePanel = SidePanelFrame(self.gameView, self.lifelinesController)
 
-    def checkAnswer(self, event: Event):
-        ...
+        self.gameSounds['question'].set_volume(0.2)
+        self.gameSounds['question'].play(loops=-1, fade_ms=1000)
 
     def lifelineHandler(self, event: Event):
         if event.widget.text == "50-50":
             event.widget.destroy()
             self.questionController.fiftyFifty()
-            sfx = mixer.Sound("./sound/50-50.mp3")
-            sfx.play()
+            self.gameSounds['50-50'].play()
             return
         if event.widget.text == "computer":
             event.widget.destroy()
@@ -133,7 +163,18 @@ class GameController(Controller):
             return
 
     def updateLives(self):
-        self.livesVar.set(self.livesVar.get() - 1)
+        self.lives -= 1
+        self.questionController.questionFrame.lives.pop().disable()
+
+    def checkSafetyNet(self):
+        if self.stage == 1:
+            self.amountWon.set(f'{AMOUNTS[4]} €')
+            self.triggerEndView(view='victory')
+        elif self.stage == 2:
+            self.amountWon.set(f'{AMOUNTS[9]} €')
+            self.triggerEndView(view='victory')
+        else:
+            self.triggerEndView(view='defeat')
 
     def setStage(self) -> None:
         if self.level < 5:
@@ -152,24 +193,58 @@ class GameController(Controller):
         if self.stage == 2:
             return self.questionPool['hard'].pop()
 
-    def nextQuestion(self):
-        self.level += 1
-        self.setStage()
+    def nextQuestion(self, result: str):
+        if self.lives > 0 and self.level < 14:
+            if result == 'correct':
+                self.level += 1
+                self.setStage()
+                self.replaceQuestion()
 
+                self.sidePanel.destroy()
+                self.sidePanel = SidePanelFrame(self.gameView, self.lifelinesController)
+            else:
+                self.replaceQuestion()
+        else:
+            self.checkSafetyNet()
+
+    def replaceQuestion(self):
         self.questionController.questionFrame.destroy()
+        del self.questionController
         self.questionController = QuestionController(self.gameView, self)
         self.questionController.questionInit()
-        self.sidePanel.destroy()
-        self.sidePanel = SidePanelFrame(self.gameView, self.lifelinesController)
+        self.gameSounds['question'].set_volume(0.2)
+        self.gameSounds['question'].play(loops=-1, fade_ms=1000)
+
+    def triggerEndView(self, view: str):
+        if view == 'victory':
+            self.questionController.questionFrame.destroy()
+            self.sidePanel.destroy()
+            del self.questionController
+            self.endView = VictoryView(master=self.gameView, controller=self)
+            self.calculatePlayerStatistics()
+        if view == 'defeat':
+            self.questionController.questionFrame.destroy()
+            self.sidePanel.destroy()
+            del self.questionController
+            self.endView = DefeatView(master=self.gameView, controller=self)
+
+    def calculatePlayerStatistics(self) -> list:
+        amountWon = re.sub('.|€| ', AMOUNTS[self.level])
+        print(f'{amountWon = }')
+        totalTime = sum(self.questionTimes)
+
+    def mainMenuView(self):
+        self.gameView.destroy()
+        self.appController.setController(lambda: MainMenuController(self.appController))
 
 
 class QuestionController(Controller):
-    def __init__(self, root, gameController) -> None:
+    def __init__(self, root: GameView, gameController: GameController) -> None:
         super(QuestionController, self).__init__()
 
         self.gameController = gameController
         self.gameRoot = root
-        self.questionFrame = None
+        self.questionFrame: QuestionFrame = None
         questionInfo = self.gameController.getNextQuestion()
 
         self.questionText = questionInfo["text"]
@@ -181,9 +256,10 @@ class QuestionController(Controller):
             self.shuffledAnswers.append(answer)
         shuffle(self.shuffledAnswers)
 
-        print('-'*10)
+        print('-' * 10)
         print(f'stage:\t\t{self.gameController.stage}')
         print(f'level:\t\t{self.gameController.level}')
+        print(f'lives:\t\t{self.gameController.lives}')
         print(f'questionText:\t{self.questionText}')
         print(f'correctAnswer:\t{self.correctAnswer}')
         print(f'shuffledAnswers:{self.shuffledAnswers}')
@@ -192,12 +268,16 @@ class QuestionController(Controller):
 
         self.timeStart = time()
         self.timerVar = IntVar(value=60 + 1)
-        self.timerAfter = None
-        self.questionTime = None
+        self.timerAfter: float = None
+        self.questionTime: float = None
+
+    def __del__(self):
+        print(f'Deleted {self}')
 
     def initTimer(self):
         self.gameRoot.after_cancel(self.timerAfter)
         self.timeStart = time()
+        self.questionTime = 0.0
         self.timerVar = IntVar(value=60 + 1)
         self.timerAfter = None
         self.questionTime = None
@@ -211,31 +291,33 @@ class QuestionController(Controller):
         self.questionFrame = QuestionFrame(self.gameRoot, self)
 
     def checkAnswer(self, event: Event):
+        self.questionTime = time() - self.timeStart
         if not self.selectedAnswer:
             if self.timerAfter:
                 self.gameRoot.after_cancel(self.timerAfter)
             self.questionTime = time() - self.timeStart
             self.selectedAnswer = event.widget.text.strip()
 
+            self.gameController.gameSounds['question'].fadeout(200)
             event.widget.finalAnswerSFX.play()
             event.widget.finalAnswerSFX.set_volume(0.5)
             event.widget.setButtonImage('./img/answerSelection.png')
             event.widget.resizeButtonImage(300, 50)
 
+            print(f'questionTime:\t{self.questionTime}')
             print(f"selectedAnswer:\t{self.selectedAnswer}")
             if self.selectedAnswer == self.correctAnswer:
+                self.gameController.questionTimes.append(self.questionTime)
                 print("Selected the CORRECT answer")
                 event.widget.after(4000, lambda: self.correctColor(event.widget))
-                event.widget.after(8000, self.gameController.nextQuestion)
+                event.widget.after(8000, self.gameController.nextQuestion, 'correct')
             else:
                 print("Selected the WRONG answer")
                 for button in self.questionFrame.answers:
                     if self.correctAnswer == button.text:
-                        event.widget.after(
-                            4000, lambda: self.wrongColor(button, event.widget)
-                        )
+                        event.widget.after(4000, lambda: self.wrongColor(button, event.widget))
                         event.widget.after(4000, self.gameController.updateLives)
-                        return
+                        event.widget.after(8000, self.gameController.nextQuestion, 'wrong')
 
     @staticmethod
     def correctColor(button) -> None:
@@ -259,7 +341,6 @@ class QuestionController(Controller):
             yield answer
 
     def fiftyFifty(self) -> None:
-        ...
         wrong = list(self.wrongAnswers.values())
         shuffle(wrong)
         for answerButton in self.questionFrame.answers:
@@ -268,7 +349,7 @@ class QuestionController(Controller):
 
 
 class LifelineController(Controller):
-    def __init__(self, gameView, gameController) -> None:
+    def __init__(self, gameView: GameView, gameController: GameController) -> None:
         super(LifelineController, self).__init__()
         self.gameController = gameController
         self.lifelinesInfo = {}
@@ -294,7 +375,7 @@ class LifelineController(Controller):
 
 
 class TopTenController(Controller):
-    def __init__(self, appController) -> None:
+    def __init__(self, appController: ApplicationController) -> None:
         super(TopTenController, self).__init__()
         self.appController = appController
         self.playersInfo = getTopTenPlayers()
