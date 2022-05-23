@@ -73,10 +73,18 @@ class AAnswerButton(AButton):
         self["disabledforeground"] = "black"
 
         self.callback = callback
-        self.bind("<1>", self.clickHandler)
+        self.bindClick = self.bind("<1>", self.clickHandler)
 
     def clickHandler(self, event):
         self.callback(event)
+
+    def changeNormalColor(self):
+        self.setButtonImage(resourcePath("./img/answerFrame.png"))
+        self.resizeButtonImage(300, 50)
+
+    def changeSelectionColor(self):
+        self.setButtonImage(resourcePath("./img/answerSelection.png"))
+        self.resizeButtonImage(300, 50)
 
     def changeCorrectColor(self):
         self.setButtonImage(resourcePath("./img/answerCorrect.png"))
@@ -91,7 +99,7 @@ class AAnswerButton(AButton):
         self.resizeButtonImage(300, 50)
 
     def disable(self, hide: bool = False):
-        self.unbind('<1>')
+        self.unbind('<1>', self.bindClick)
         self.bind('<1>', lambda _: 'break')
         if hide:
             self.setButtonImage(resourcePath("./img/answerRemoved.png"))

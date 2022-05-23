@@ -1,9 +1,13 @@
-from __future__ import annotations
-
-from typing import TypedDict
+from typing import TypedDict, Callable
 
 
 # TYPE DEFINITIONS
+
+
+class wrongAnswers(TypedDict):
+    w1: str
+    w2: str
+    w3: str
 
 
 class Document(TypedDict):
@@ -11,12 +15,6 @@ class Document(TypedDict):
     difficulty: str
     correct: str
     wrong: wrongAnswers
-
-
-class wrongAnswers(TypedDict):
-    w1: str
-    w2: str
-    w3: str
 
 
 class Player(TypedDict):

@@ -1,7 +1,7 @@
 from numpy.random import choice
 from tinydb import TinyDB, Query
 from random import shuffle
-from typedef import *
+from typedef import Document
 from filePath import resourcePath
 
 db = TinyDB(resourcePath("db.json"))
