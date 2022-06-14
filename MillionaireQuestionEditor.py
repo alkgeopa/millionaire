@@ -1,10 +1,7 @@
 from tkinter import *
 from tkinter.ttk import Treeview
 from tinydb import TinyDB, Query
-from typing import TypeVar
-
-# Type definitions
-Document = TypeVar('Document')
+from typedef import Document
 
 
 db = TinyDB('db.json')

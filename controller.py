@@ -76,7 +76,8 @@ class PlayerNameController(Controller):
         self.currentView = PlayerNameInputView(self.appRoot, controller=self)
 
     def startHandler(self, event: Event | None = ...):
-        print(f"{self.playerName.get() = }")
+        if not self.playerName.get():
+            self.playerName.set("NewPlayer")
         self.currentView.destroy()
         self.appController.setController(
             lambda: GameController(self.appController, self.playerName)
