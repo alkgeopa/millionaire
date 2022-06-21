@@ -1,26 +1,28 @@
 from tkinter import *
 
 from PIL import Image, ImageTk
-from pygame import mixer
 
 from constants import ANSWERHEIGHT, ANSWERWIDTH
 from filePath import resourcePath
 
 
 class AButton(Button):
-    def __init__(self, master: Misc | None = ..., imgPath: str = None, **kw) -> None:
+    def __init__(self, master: Misc | None = ..., imgPath: str | None = ..., callback=None, **kw):
         super().__init__(master, **kw)
+        self.callback = callback
         self.buttonImage = None
-        self.text = self["text"]
+        self.imagePath = imgPath
+        self.enabled = True
+        self.text = self["text"].strip()
 
         self.defaultBackground = "black"
         self.defaultForeground = "white"
         if self["background"] == self["bg"] == "":
             self["background"] = self.defaultBackground
-        self["foreground"] = self.defaultForeground
-        self["activebackground"] = self.defaultBackground
-        self["activeforeground"] = self.defaultForeground
-        self.imagePath = imgPath
+        self.config(fg=self.defaultForeground, activebackground=self.defaultBackground,
+                    activeforeground=self.defaultForeground, highlightbackground=self.defaultBackground)
+
+        self.bindClick = self.bind("<1>", self.clickHandler)
 
     def setButtonImage(self, path: str):
         self.imagePath = path
@@ -35,48 +37,45 @@ class AButton(Button):
         self.buttonImage = ImageTk.PhotoImage(self.buttonImage)
         self.config(image=self.buttonImage)
 
+    def clickHandler(self, event: Event):
+        if self.callback:
+            self.callback(event)
+        else:
+            print(f'No callback for {__class__} button {self.text}.')
+
+    def disable(self, hide: bool = False):
+        self.enabled = False
+        self.bindClick = self.bind('<1>', lambda _: 'break')
+
+    def enable(self):
+        self.enabled = True
+        self.bindClick = self.bind("<1>", self.clickHandler)
+
 
 class AMenuButton(AButton):
-    def __init__(self, master: Misc | None = ..., **kw) -> None:
+    def __init__(self, master: Misc | None = ..., **kw):
         super().__init__(master, **kw)
         self["bg"] = "purple"
 
 
 class AAnswerButton(AButton):
+    """Answer button variant"""
     textPrefix = ["A. ", "B. ", "Γ. ", "Δ. "]
 
-    def __init__(self, master: Misc | None = ..., callback=None, **kw) -> None:
-        super().__init__(master, **kw)
+    def __init__(self, master: Misc | None = ..., imgPath: str | None = ..., callback=None, **kw) -> None:
+        super().__init__(master, imgPath=imgPath, callback=callback, **kw)
 
-        self.finalAnswerSFX = mixer.Sound(resourcePath("./sound/final-answer.mp3"))
-        self.correctAnswerSFX = mixer.Sound(resourcePath("./sound/correct-answer.mp3"))
-        self.wrongAnswerSFX = mixer.Sound(resourcePath("./sound/wrong-answer.mp3"))
-        self.suggestionAnswerSFX = mixer.Sound(resourcePath("./sound/suggestion-answer.mp3"))
+        # self.finalAnswerSFX = mixer.Sound(resourcePath("./sound/final-answer.mp3"))
+        # self.correctAnswerSFX = mixer.Sound(resourcePath("./sound/correct-answer.mp3"))
+        # self.wrongAnswerSFX = mixer.Sound(resourcePath("./sound/wrong-answer.mp3"))
+        # self.suggestionAnswerSFX = mixer.Sound(resourcePath("./sound/suggestion-answer.mp3"))
 
         self.text = self["text"][3:].strip()
 
         self.imagePath = resourcePath("./img/answerFrame.png")
         self.resizeButtonImage(300, 50)
-        self.defaultBackground = "black"
-        self.defaultForeground = "white"
-        self["background"] = self.defaultBackground
-        self["foreground"] = self.defaultForeground
-        self["activeforeground"] = self.defaultForeground
-        self["activebackground"] = "#111"
-        self["font"] = ("Segoe UI", 9, "bold")
-        self["pady"] = 10
-        self["padx"] = 10
-        self["border"] = 0
-        self["relief"] = "flat"
-        self["compound"] = "center"
-
-        self["disabledforeground"] = "black"
-
-        self.callback = callback
-        self.bindClick = self.bind("<1>", self.clickHandler)
-
-    def clickHandler(self, event):
-        self.callback(event)
+        self.config(bg=self.defaultBackground, font=("Segoe UI", 9, "bold"), border=0, relief='flat',
+                    compound='center', disabledforeground='black', padx=10, pady=10)
 
     def changeNormalColor(self):
         self.setButtonImage(resourcePath("./img/answerFrame.png"))
@@ -99,8 +98,7 @@ class AAnswerButton(AButton):
         self.resizeButtonImage(300, 50)
 
     def disable(self, hide: bool = False):
-        self.unbind('<1>', self.bindClick)
-        self.bind('<1>', lambda _: 'break')
+        super().disable()
         if hide:
             self.setButtonImage(resourcePath("./img/answerRemoved.png"))
             self.resizeButtonImage(300, 50)
@@ -109,24 +107,39 @@ class AAnswerButton(AButton):
 
 class ALifelineButton(AButton):
     def __init__(self, master, imgPath: str = None, callback=None, **kw):
+        super().__init__(master, imgPath=imgPath, callback=callback, **kw)
+        self.config(text='', compound='c', bg=self.defaultBackground, border=0, relief='flat', command=None)
+        self["width"] = 116
+        self["height"] = 86
+        self.setButtonImage(self.imagePath)
+
+
+class ALabel(Label):
+    def __init__(self, master: Misc | None = ..., imgPath: str | None = ..., **kw):
+        super().__init__(master, **kw)
+        self.imgPath = imgPath
+        self.setLabelImage(self.imgPath)
+
+    def setLabelImage(self, path: str):
+        self.imagePath = path
+        self.labelImage = Image.open(self.imagePath)
+        self.labelImage = ImageTk.PhotoImage(self.labelImage.resize((100, 50), Image.ANTIALIAS))
+        self.config(image=self.labelImage)
+
+
+class Timer(ALabel):
+    def __init__(self, master: Misc | None = ..., imgPath: str | None = ..., **kw):
         super().__init__(master, imgPath=imgPath, **kw)
-        self.text = self["text"].strip()
-        self["text"] = ""
+        self.config(bg='black', fg='white', compound='center', font=('sans-serif', 12, 'bold'))
 
-        self["bg"] = self.defaultBackground  # black
-        self["border"] = 0
-        self["relief"] = 'flat'
-        self["background"] = "black"
-        self["width"] = ANSWERWIDTH
-        self["height"] = ANSWERHEIGHT
-        self["command"] = None
+    def changeToNormal(self):
+        self.setLabelImage(resourcePath('./img/clockNormal.png'))
 
-        self.callback = callback
+    def changeToLow(self):
+        self.setLabelImage(resourcePath('./img/clockLow.png'))
 
-        self.bind("<1>", self.clickHandler)
-
-    def clickHandler(self, event: Event):
-        self.callback(event)
+    def changeToCritical(self):
+        self.setLabelImage(resourcePath('./img/clockCritical.png'))
 
 
 class LifeIcon(Label):

@@ -6,17 +6,22 @@ from typing import TypedDict
 # TYPE DEFINITIONS
 
 
-class Document(TypedDict):
+class Question(TypedDict):
     text: str
     difficulty: str
     correct: str
-    wrong: wrongAnswers
+    wrong: WrongAnswers
 
 
-class wrongAnswers(TypedDict):
+class WrongAnswers(TypedDict):
     w1: str
     w2: str
     w3: str
+
+
+class QuestionModel(TypedDict):
+    text: str
+    answers: list[str]
 
 
 class Player(TypedDict):
